@@ -1,0 +1,240 @@
+                              CH_DEL  EQU     127
+                              
+                              ; ----------------------------------------------------------------------
+                              ; BOOT TABLE
+                              
+                                      ORG     0
+0000 14 00 00                 ORIGIN: JPA     CENT            ;  0: COLD start
+0003 00                               NOP
+0004 14 00 00                         JPA     WENT            ;  4: WARM start
+0007 00                               NOP
+0008 00 00                            DW      0               ;  8: Processor type in radix 36
+000A 00 00                            DW      0               ; 10: Revision
+000C 00 00                            DW      HFORTH          ; 12: Pointer to latest word defined
+000E 7F 00                            DW      CH_DEL          ; 14: Backspace character
+0010 00 00                            DW      XUP             ; 16: Pointer to initial user area
+0012 00 00                            DW      XSP             ; 18: Initial data stack pointer
+0014 00 00                            DW      XRP             ; 20: Initial data stack pointer
+0016 00 00                            DW      XTIB            ; 22: Pointer to terminal input buffer
+0018 1F 00                            DW      31              ; 24: Maximum FORTH word name length
+001A 00 00                            DW      0               ; 26: Initial WARNING mode
+001C 00 00                            DW      XDP             ; 28: Initial FENCE
+001E 00 00                            DW      XDP             ; 30: Initial HERE
+0020 00 00                            DW      XXVOC           ; 32: Pointer to initial VOC-LINK
+0022 00 00                            DW      DSKBF           ; 34: Initial FIRST
+0024 00 00                            DW      ENDBF           ; 36: Initial LIMIT
+0026 00 00                            DW      0               ; 38: unused
+0028 00 00                            DW      0               ; 40: unused
+                              ; ----------------------------------------------------------------------
+                              ; THE VIRTUAL FORTH MACHINE REGISTERS
+                              
+                              IP:                             ; Instruction Pointer
+002A 00                       IPlo:   DB      0
+002B 00                       IPhi:   DB      0
+                              
+                              WA:                             ; Word Address Register
+002C 00                       WAlo:   DB      0
+002D 00                       WAhi:   DB      0
+                              
+                              R1:                             ; Working register R1
+002E 00                       R1lo:   DB      0
+002F 00                       R1hi:   DB      0
+                              
+                              R2:                             ; Working register R2
+0030 00                       R2lo:   DB      0
+0031 00                       R2hi:   DB      0
+                              
+                              SP:                             ; Data stack pointer
+0032 00                       SPlo:   DB      0
+0033 00                       SPhi:   DB      0
+                              
+                              RP:                             ; Return stack pointer
+0034 00                       RPlo:   DB      0
+0035 00                       RPhi:   DB      0
+                              
+                              UP:                             ; User area pointer
+0036 00                       UPlo:   DB      0
+0037 00                       UPhi:   DB      0
+                              
+                              ; ----------------------------------------------------------------------
+                              ; BITWISE LOGICAL OPERATIONS
+                              ;
+                              ; ------------------------------
+                              ;       R2H = R1H & R1L
+                              
+0038 24 31 00                 AND:    CLB     R2hi            ; Zero result
+003B 0E 08                            LDI     8               ; Init bit counter
+003D 16 30 00                         STA     R2lo            ; :
+                                      ; Inspect first operand
+0040 15 2E 00                 AND00:  LDA     R1lo            ; Get first operand
+0043 06                               ROL                     ; Look at highest bit (i.e. sign flag)
+0044 16 2E 00                         STA     R1lo            ; Store updated first operand
+0047 3E 60 00                         BPL     AND10
+                                      ; First is TRUE, inspect second operand
+004A 15 2F 00                         LDA     R1hi            ; Get second operand
+004D 06                               ROL                     ; Look at highest bit (i.e. sign flag)
+004E 16 2F 00                         STA     R1hi            ; Store updated second operand
+0051 3E 67 00                         BPL     AND20
+                                      ; Both are TRUE, set corresponding bit in result
+0054 15 31 00                         LDA     R2hi            ; Get result
+0057 06                               ROL                     ; Rotate as operands above
+0058 0F 80                            ADI     0x80            ; Set highest bit
+005A 16 31 00                         STA     R2hi            ; Store result
+005D 14 6E 00                         JPA     AND30           ; Go to end of loop
+                                      ; First was FALSE, no need to look further
+0060 15 2F 00                 AND10:  LDA     R1hi            ; Get second operand
+0063 06                               ROL                     ; Just rotate
+0064 16 2F 00                         STA     R1hi            ; Store updated second operand
+0067 15 31 00                 AND20:  LDA     R2hi            ; Get result
+006A 06                               ROL                     ; Just rotate
+006B 16 31 00                         STA     R2hi            ; Store result
+                                      ; Check for remaining iterations
+006E 27 30 00                 AND30:  DEB     R2lo            ; Decrement bit counter
+0071 3A 40 00                         BNE     AND00           ; Not zero: Next iteration
+0074 39                               RTS                     ; All eight bits done
+                              
+                              ; ------------------------------
+                              ;       R2H = R1H | R1L
+                              
+0075 24 31 00                 OR:     CLB     R2hi            ; Zero result
+0078 0E 08                            LDI     8               ; Init bit counter
+007A 16 30 00                         STA     R2lo            ; :
+                                      ; Inspect first operand
+007D 15 2E 00                 OR00:   LDA     R1lo            ; Get first operand
+0080 06                               ROL                     ; Look at highest bit (i.e. sign flag)
+0081 16 2E 00                         STA     R1lo            ; Store updated first operand
+0084 3F 9B 00                         BMI     OR10
+                                      ; First is FALSE, inspect second operand
+0087 15 2F 00                         LDA     R1hi            ; Get second operand
+008A 06                               ROL                     ; Look at highest bit (i.e. sign flag)
+008B 16 2F 00                         STA     R1hi            ; Store updated second operand
+008E 3F A2 00                         BMI     OR20
+                                      ; Both are FALSE, rotate without setting bit in result
+0091 15 31 00                         LDA     R2hi            ; Get result
+0094 06                               ROL                     ; Rotate as operands above
+0095 16 31 00                         STA     R2hi            ; Store result
+0098 14 AB 00                         JPA     OR30            ; Go to end of loop
+                                      ; First was TRUE, no need to look further
+009B 15 2F 00                 OR10:   LDA     R1hi            ; Get second operand
+009E 06                               ROL                     ; Dummy shift
+009F 16 2F 00                         STA     R1hi            ; Store updated second operand
+                                      ; At least one was TRUE, rotate and set bit
+00A2 15 31 00                 OR20:   LDA     R2hi            ; Get result
+00A5 06                               ROL                     ; Rotate as operands
+00A6 0F 80                            ADI     0x80            ; Set highest bit
+00A8 16 31 00                         STA     R2hi            ; Store result
+                                      ; Check for remaining iterations
+00AB 27 30 00                 OR30:   DEB     R2lo            ; Decrement bit counter
+00AE 3A 7D 00                         BNE     OR00            ; Not zero: Next iteration
+00B1 39                               RTS                     ; All eight bits done
+                              
+                              ; ------------------------------
+                              ;       R2H = R1H ^ R1L
+                              
+00B2 24 31 00                 XOR:    CLB     R2hi            ; Zero result
+00B5 0E 08                            LDI     8               ; Init bit counter
+00B7 16 30 00                         STA     R2lo            ; :
+                                      ; Inspect first operand
+00BA 15 2E 00                 XOR00:  LDA     R1lo            ; Get first operand
+00BD 06                               ROL                     ; Look at highest bit (i.e. sign flag)
+00BE 16 2E 00                         STA     R1lo            ; Store updated first operand
+00C1 3F D1 00                         BMI     XOR10
+                                      ; First is FALSE, inspect second operand for TRUE
+00C4 15 2F 00                         LDA     R1hi            ; Get second operand
+00C7 06                               ROL                     ; Look at highest bit (i.e. sign flag)
+00C8 16 2F 00                         STA     R1hi            ; Store updated second operand
+00CB 3F E5 00                         BMI     XOR30           ; Second is TRUE, set bit in result
+00CE 14 DB 00                         JPA     XOR20           ; Both operand bits are false
+                                      ; First is TRUE, inspect second operand for FALSE
+00D1 15 2F 00                 XOR10:  LDA     R1hi            ; Get second operand
+00D4 06                               ROL                     ; Look at highest bit (i.e. sign flag)
+00D5 16 2F 00                         STA     R1hi            ; Store updated second operand
+00D8 3E E5 00                         BPL     XOR30           ; Second is FALSE, set bit in result
+                                      ; FALSE case, just rotate result
+00DB 15 31 00                 XOR20:  LDA     R2hi            ; Get second operand
+00DE 06                               ROL                     ; Dummy shift
+00DF 16 31 00                         STA     R2hi            ; Store updated second operand
+00E2 14 EE 00                         JPA     XOR40
+                                      ; TRUE case, rotate and set bit
+00E5 15 31 00                 XOR30:  LDA     R2hi            ; Get result
+00E8 06                               ROL                     ; Rotate as operands
+00E9 0F 80                            ADI     0x80            ; Set highest bit
+00EB 16 31 00                         STA     R2hi            ; Store result
+                                      ; Check for remaining iterations
+00EE 27 30 00                 XOR40:  DEB     R2lo            ; Decrement bit counter
+00F1 3A BA 00                         BNE     XOR00           ; Not zero: Next iteration
+00F4 39                               RTS                     ; All eight bits done
+                              
+                              ; ----------------------------------------------------------------------
+                              ; INNER INTERPRETER
+                              
+00F5 2F 32 00                 DPUSH:  DEW     SP              ; move R2, -(SP)
+00F8 15 31 00                         LDA     R2hi
+00FB 1E 32 00                         STR     SP
+00FE 2F 32 00                         DEW     SP
+0101 15 30 00                         LDA     R2lo
+0104 1E 32 00                         STR     SP
+0107 2F 32 00                 PUSH:   DEW     SP              ; move R1, -(SP)
+010A 15 2F 00                         LDA     R1hi
+010D 1E 32 00                         STR     SP
+0110 2F 32 00                         DEW     SP
+0113 15 2E 00                         LDA     R1lo
+0116 1E 32 00                         STR     SP
+0119 1D 2A 00                 NEXT:   LDR     IP              ; move (IP)+, WA
+011C 16 2C 00                         STA     WAlo
+011F 2E 2A 00                         INW     IP
+0122 1D 2A 00                         LDR     IP
+0125 16 2D 00                         STA     WAhi
+0128 2E 2A 00                         INW     IP
+012B 1D 2C 00                 NEXT10: LDR     WA              ; move (WA)+, TMP
+012E 16 2E 00                         STA     R1lo
+0131 2E 2C 00                         INW     WA
+0134 1D 2C 00                         LDR     WA
+0137 16 2F 00                         STA     R1hi
+013A 2E 2C 00                         INW     WA
+013D 1C 2E 00                         JPR     R1              ; jump *TMP
+                              ; ----------------------------------------------------------------------
+                              ; FORTH PRIMARIES
+                              ;
+                              
+0140 83 4C 49 D4              HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
+0144 00 00                            DW      0
+0146 48 01                    LIT:    DW      LIT0
+0148 38 00 00                 LIT0:   JPS     _LIT            ; move (IP)+, R1
+014B 38 00 00                         JPS     _PUSH           ; push R1
+014E 14 19 01                         JPA     NEXT
+                              
+0151 87 45 58 45 43 55 54 C5  HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
+0159 40 01                            DW      HLIT
+015B 5D 01                    EXEC:   DW      EXEC0
+015D 1D 32 00                 EXEC0:  LDR     SP              ; move (SP)+, WA
+0160 16 2C 00                         STA     WAlo
+0163 2E 32 00                         INW     SP
+0166 1D 32 00                         LDR     SP
+0169 16 2D 00                         STA     WAhi
+016C 2E 32 00                         INW     SP
+016F 14 2B 01                         JPA     NEXT10          ; jump @(WA)+
+                              
+0172 86 42 52 41 4E 43 C8     HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
+0179 51 01                            DW      HEXEC
+017B 7D 01                    BRAN:   DW      BRAN0
+017D 38 00 00                 BRAN0:  JPS     _BRAN           ; add (IP), IP
+0180 14 19 01                         JPA     NEXT
+                              
+0183 87 30 42 52 41 4E 43 C8  HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** BRANCH
+018B 72 01                            DW      HBRAN
+018D 8F 01                    ZBRAN:  DW      ZBRAN0
+018F 1D 32 00                 ZBRAN0: LDR     SP
+0192 06                               ROL
+0193 3A A9 01                         BNE     ZBRA30          ; Low byte non-zero?
+0196 2E 32 00                         INW     SP
+0199 1D 32 00                         LDR     SP
+019C 06                               ROL
+019D 3A AC 01                         BNE     ZBRA50          ; High byte non-zero?
+01A0 2E 32 00                         INW     SP
+01A3 38 00 00                         JPS     _BRAN           ; add (IP), IP
+01A6 14 19 01                         JPA     NEXT
+01A9 2E 32 00                 ZBRA30: INW     SP
+01AC 2E 2A 00                 ZBRA50: INW     IP              ; Just skip jump offset
+01AF 2E 2A 00                         INW     IP
+01B2 14 19 01                         JPA     NEXT

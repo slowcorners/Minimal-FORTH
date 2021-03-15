@@ -1,0 +1,28 @@
+                              ; Slu4 synthesized bitwise AND
+                              
+                                      ORG     0x8000
+                              
+8000 38 09 80                         JPS     And
+8003 14 03 80                 halt:   JPA     halt
+                              
+8006 F0                       rega:   DB      0xf0
+8007 55                       regb:   DB      0x55
+8008 00                       count:  DB      0
+                              
+                                      ; rega = rega & regb
+8009 0E 08                    And:    LDI     8
+800B 16 08 80                         STA     count
+800E 15 07 80                 loop:   LDA     regb
+8011 05                               LSL
+8012 16 07 80                         STA     regb            ; shift bit of b into C
+8015 15 06 80                         LDA     rega
+8018 3C 21 80                         BCC     rollthisin
+801B 11 00                            CPI     0
+801D 3F 21 80                         BMI     rollthisin      ; check bit a, branch if N=1 (C will be 1, too)
+8020 03                               CLC                     ; clear C so it will be shifted back in
+                              rollthisin:
+8021 06                               ROL
+8022 16 06 80                         STA     rega            ; roll C back in
+8025 27 08 80                         DEB     count
+8028 3A 0E 80                         BNE     loop
+802B 39                               RTS
