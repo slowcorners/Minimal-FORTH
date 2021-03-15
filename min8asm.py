@@ -86,7 +86,10 @@ def findSym(name, offsFlag = False):
         symtab[name] = [False]
         symDefined = False
     if symDefined:
-        symValue = symtab[name][1]
+        if offsFlag:
+            symValue = symtab[name][1] - loco
+        else:
+            symValue = symtab[name][1]
     else:
         symtab[name].append((loco, offsFlag))
         symValue = None
@@ -97,7 +100,7 @@ def defineSym(name, value = loco):
     try:
         resolved = symtab[name][0]
         if resolved:
-            error("Symbol %s redefined" % name)
+            error('Symbol %s redefined' % name)
     except:
         symtab[name] = [True, value]
         resolved = True
@@ -133,7 +136,12 @@ def depositValue(txt, word):
         while len(txt):
             db(ord(txt[0])); txt = txt[1:]
     else:
-        value = findSym(txt)
+        if txt[0] == '+':
+            offset = True
+            txt = txt[1:]
+        else:
+            offset = False
+        value = findSym(txt, offset)
         if value:
             dv(value, word)
         else:
@@ -244,7 +252,6 @@ def writeListfile(listfileName):
     f.write((30 - outc) * ' ')
     f.write('%s\n' % sourceCode[lineno])
     f.close()
-                
 
 # ----------------------------------------
 # "MAIN"
