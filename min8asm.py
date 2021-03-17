@@ -206,6 +206,17 @@ def assemble():
         if len(llist):
             parseLine(llist)
 
+def checkForErrors():
+    heading_ok = False
+    for sym in sorted(symtab.items()):
+        if not sym[1][0]:
+            if not heading_ok:
+                print('Undefined symbol(s):')
+                heading_ok = True
+            print('  %s' % sym[0], end = '')
+    if heading_ok:
+        print()
+
 def writeOutputfile(outfileName):
     f = open(outfileName, 'w')
     outc = 0
@@ -264,6 +275,7 @@ def writeListfile(listfileName):
 
 readSource(sys.argv[1])
 assemble()
+checkForErrors()
 writeOutputfile(sys.argv[1].split('.')[0] + '.hex')
 writeListfile(sys.argv[1].split('.')[0] + '.lst')
 

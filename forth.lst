@@ -165,36 +165,45 @@
 80D7 3A B5 80                                                 BNE     XOR10           ;   NO: Do one more
 80DA 39                                                       RTS                     ;   YES: All done
                                                       
+                                                      ; ------------------------------
+                                                      ;       RegD = ~RegD
+                                                      
+80DB 15 30 80                                         NOT:    LDA     RegD            ; Load operand
+80DE 0B                                                       NEG                     ; Two-complement negation
+80DF 10 01                                                    SBI     1               ; Adjust to become bitwise not
+80E1 16 30 80                                                 STA     RegD            ; Store result
+80E4 39                                                       RTS                     ; Done
+                                                      
                                                       ; INCLUDE         inner.asm
                                                       
                                                       ; ----------------------------------------------------------------------
                                                       ; INNER INTERPRETER
                                                       
-80DB 2F 32 80                                         DPUSH:  DEW     SP              ; -(SP) = R2
-80DE 15 00 00                                                 LDA     R2hi
-80E1 1E 32 80                                                 STR     SP
-80E4 2F 32 80                                                 DEW     SP
-80E7 15 00 00                                                 LDA     R2lo
-80EA 1E 32 80                                                 STR     SP
-80ED 2F 32 80                                         PUSH:   DEW     SP              ; -(SP) = R1
-80F0 15 00 00                                                 LDA     R1hi
-80F3 1E 32 80                                                 STR     SP
-80F6 2F 32 80                                                 DEW     SP
-80F9 15 00 00                                                 LDA     R1lo
-80FC 1E 32 80                                                 STR     SP
-80FF 1D 2A 80                                         NEXT:   LDR     IP              ; WA = (IP)+
-8102 16 2C 80                                                 STA     WAlo
-8105 2E 2A 80                                                 INW     IP
-8108 1D 2A 80                                                 LDR     IP
-810B 16 2D 80                                                 STA     WAhi
-810E 2E 2A 80                                                 INW     IP
-8111 1D 2C 80                                         NEXT10: LDR     WA              ; R1 = (WA)+
-8114 16 00 00                                                 STA     R1lo
-8117 2E 2C 80                                                 INW     WA
-811A 1D 2C 80                                                 LDR     WA
-811D 16 00 00                                                 STA     R1hi
-8120 2E 2C 80                                                 INW     WA
-8123 1C 00 00                                                 JPR     R1              ; jump @(TMP)
+80E5 2F 32 80                                         DPUSH:  DEW     SP              ; -(SP) = R2
+80E8 15 00 00                                                 LDA     R2hi
+80EB 1E 32 80                                                 STR     SP
+80EE 2F 32 80                                                 DEW     SP
+80F1 15 00 00                                                 LDA     R2lo
+80F4 1E 32 80                                                 STR     SP
+80F7 2F 32 80                                         PUSH:   DEW     SP              ; -(SP) = R1
+80FA 15 00 00                                                 LDA     R1hi
+80FD 1E 32 80                                                 STR     SP
+8100 2F 32 80                                                 DEW     SP
+8103 15 00 00                                                 LDA     R1lo
+8106 1E 32 80                                                 STR     SP
+8109 1D 2A 80                                         NEXT:   LDR     IP              ; WA = (IP)+
+810C 16 2C 80                                                 STA     WAlo
+810F 2E 2A 80                                                 INW     IP
+8112 1D 2A 80                                                 LDR     IP
+8115 16 2D 80                                                 STA     WAhi
+8118 2E 2A 80                                                 INW     IP
+811B 1D 2C 80                                         NEXT10: LDR     WA              ; R1 = (WA)+
+811E 16 00 00                                                 STA     R1lo
+8121 2E 2C 80                                                 INW     WA
+8124 1D 2C 80                                                 LDR     WA
+8127 16 00 00                                                 STA     R1hi
+812A 2E 2C 80                                                 INW     WA
+812D 1C 00 00                                                 JPR     R1              ; jump @(TMP)
                                                       
                                                       ; INCLUDE         primaries.asm
                                                       
@@ -202,43 +211,43 @@
                                                       ; FORTH PRIMARIES
                                                       ;
                                                       
-8126 83 4C 49 D4                                      HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
-812A 00 00                                                    DW      0
-812C 2E 81                                            LIT:    DW      LIT0
-812E 38 38 80                                         LIT0:   JPS     _LIT            ; move (IP)+, R1
-8131 14 ED 80                                                 JPA     PUSH            ; push R1 and NEXT
+8130 83 4C 49 D4                                      HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
+8134 00 00                                                    DW      0
+8136 38 81                                            LIT:    DW      LIT0
+8138 38 38 80                                         LIT0:   JPS     _LIT            ; R1 = (IP)+
+813B 14 F7 80                                                 JPA     PUSH            ; -(SP) = R1, NEXT
                                                       
-8134 87 45 58 45 43 55 54 C5                          HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
-813C 26 81                                                    DW      HLIT
-813E 40 81                                            EXEC:   DW      EXEC0
-8140 1D 32 80                                         EXEC0:  LDR     SP              ; move (SP)+, WA
-8143 16 2C 80                                                 STA     WAlo
-8146 2E 32 80                                                 INW     SP
-8149 1D 32 80                                                 LDR     SP
-814C 16 2D 80                                                 STA     WAhi
-814F 2E 32 80                                                 INW     SP
-8152 14 11 81                                                 JPA     NEXT10          ; jump @(WA)+
+813E 87 45 58 45 43 55 54 C5                          HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
+8146 30 81                                                    DW      HLIT
+8148 4A 81                                            EXEC:   DW      EXEC0
+814A 1D 32 80                                         EXEC0:  LDR     SP              ; WA = (SP)+
+814D 16 2C 80                                                 STA     WAlo
+8150 2E 32 80                                                 INW     SP
+8153 1D 32 80                                                 LDR     SP
+8156 16 2D 80                                                 STA     WAhi
+8159 2E 32 80                                                 INW     SP
+815C 14 1B 81                                                 JPA     NEXT10          ; jump @(WA)+
                                                       
-8155 86 42 52 41 4E 43 C8                             HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
-815C 34 81                                                    DW      HEXEC
-815E 60 81                                            BRAN:   DW      BRAN0
-8160 38 4B 80                                         BRAN0:  JPS     _BRAN           ; add (IP), IP
-8163 14 FF 80                                                 JPA     NEXT
+815F 86 42 52 41 4E 43 C8                             HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
+8166 3E 81                                                    DW      HEXEC
+8168 6A 81                                            BRAN:   DW      BRAN0
+816A 38 4B 80                                         BRAN0:  JPS     _BRAN           ; IP = IP + (IP)
+816D 14 09 81                                                 JPA     NEXT
                                                       
-8166 87 30 42 52 41 4E 43 C8                          HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** BRANCH
-816E 55 81                                                    DW      HBRAN
-8170 72 81                                            ZBRAN:  DW      ZBRAN0
-8172 1D 32 80                                         ZBRAN0: LDR     SP
-8175 11 00                                                    CPI     0
-8177 3A 8E 81                                                 BNE     ZBRA30          ; Low byte non-zero?
-817A 2E 32 80                                                 INW     SP
-817D 1D 32 80                                                 LDR     SP
-8180 11 00                                                    CPI     0
-8182 3A 91 81                                                 BNE     ZBRA50          ; High byte non-zero?
-8185 2E 32 80                                                 INW     SP
-8188 38 4B 80                                                 JPS     _BRAN           ; add (IP), IP
-818B 14 FF 80                                                 JPA     NEXT
-818E 2E 32 80                                         ZBRA30: INW     SP
-8191 2E 2A 80                                         ZBRA50: INW     IP              ; Just skip jump offset
-8194 2E 2A 80                                                 INW     IP
-8197 14 FF 80                                                 JPA     NEXT
+8170 87 30 42 52 41 4E 43 C8                          HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** 0BRANCH
+8178 5F 81                                                    DW      HBRAN
+817A 7C 81                                            ZBRAN:  DW      ZBRAN0
+817C 1D 32 80                                         ZBRAN0: LDR     SP
+817F 11 00                                                    CPI     0               ; Low byte non-zero?
+8181 3A 95 81                                                 BNE     ZBRA10          ; YES: Do not branch
+8184 2E 32 80                                                 INW     SP
+8187 1D 32 80                                                 LDR     SP
+818A 11 00                                                    CPI     0               ; High byte non-zero?
+818C 3A 98 81                                                 BNE     ZBRA20          ; YES: Do not branch
+818F 2E 32 80                                                 INW     SP
+8192 14 6A 81                                                 JPA     BRAN0           ; IP = IP + (IP), NEXT
+8195 2E 32 80                                         ZBRA10: INW     SP
+8198 2E 32 80                                         ZBRA20: INW     SP
+819B 2E 2A 80                                                 INW     IP              ; Just skip jump offset
+819E 2E 2A 80                                                 INW     IP
+81A1 14 09 81                                                 JPA     NEXT

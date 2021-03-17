@@ -5,13 +5,13 @@
 HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
         DW      0
 LIT:    DW      LIT0
-LIT0:   JPS     _LIT            ; move (IP)+, R1
-        JPA     PUSH            ; push R1 and NEXT
+LIT0:   JPS     _LIT            ; R1 = (IP)+
+        JPA     PUSH            ; -(SP) = R1, NEXT
 
 HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
         DW      HLIT
 EXEC:   DW      EXEC0
-EXEC0:  LDR     SP              ; move (SP)+, WA
+EXEC0:  LDR     SP              ; WA = (SP)+
         STA     WAlo
         INW     SP
         LDR     SP
@@ -22,23 +22,23 @@ EXEC0:  LDR     SP              ; move (SP)+, WA
 HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
         DW      HEXEC
 BRAN:   DW      BRAN0
-BRAN0:  JPS     _BRAN           ; add (IP), IP
+BRAN0:  JPS     _BRAN           ; IP = IP + (IP)
         JPA     NEXT
 
-HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** BRANCH
+HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** 0BRANCH
         DW      HBRAN
 ZBRAN:  DW      ZBRAN0
 ZBRAN0: LDR     SP
-        CPI     0
-        BNE     ZBRA30          ; Low byte non-zero?
+        CPI     0               ; Low byte non-zero?
+        BNE     ZBRA10          ; YES: Do not branch
         INW     SP
         LDR     SP
-        CPI     0
-        BNE     ZBRA50          ; High byte non-zero?
+        CPI     0               ; High byte non-zero?
+        BNE     ZBRA20          ; YES: Do not branch
         INW     SP
-        JPS     _BRAN           ; add (IP), IP
-        JPA     NEXT
-ZBRA30: INW     SP
-ZBRA50: INW     IP              ; Just skip jump offset
+        JPA     BRAN0           ; IP = IP + (IP), NEXT
+ZBRA10: INW     SP
+ZBRA20: INW     SP
+        INW     IP              ; Just skip jump offset
         INW     IP
         JPA     NEXT
