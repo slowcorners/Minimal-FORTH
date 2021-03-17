@@ -9,13 +9,13 @@ WA:                             ; Word Address Register
 WAlo:   DB      0
 WAhi:   DB      0
 
-R1:                             ; Working register R1
-R1lo:   DB      0
-R1hi:   DB      0
+RegBC:                          ; Working register R1
+RegB:   DB      0
+RegC:   DB      0
 
-R2:                             ; Working register R2
-R2lo:   DB      0
-R2hi:   DB      0
+RegDE:                          ; Working register R2
+RegD:   DB      0
+RegE:   DB      0
 
 SP:                             ; Data stack pointer
 SPlo:   DB      0

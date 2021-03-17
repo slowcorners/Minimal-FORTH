@@ -21,8 +21,8 @@ opcodes = {
     'BCC': (60, 2), 'BCS': (61, 2), 'BPL': (62, 2), 'BMI': (63, 2)
 }
 
-WORD = True
-BYTE = False
+WORD = 2
+BYTE = 1
 
 symtab = {}
 sourceCode = []
@@ -48,6 +48,9 @@ def readSource(fn):
         llist = line.split()
         if len(llist):
             if llist[0] == 'INCLUDE':
+                sourceCode.append('')
+                sourceCode.append('; ' + line[:-1])
+                sourceCode.append('')
                 readSource(llist[1])
             else:
                 sourceCode.append(line[:-1])
@@ -67,8 +70,8 @@ def db(b):
 def dw(w):
     db(w & 0xFF); db((w >> 8) & 0xFF)
 
-def dv(v, word):
-    if word: dw(v)
+def dv(v, size):
+    if size == 2: dw(v)
     else: db(v)
 
 def ds(n):
@@ -120,36 +123,38 @@ def defineSym(name, value = loco):
 # ----------------------------------------
 # OBJECT CODE OPERATIONS
 
-def depositValue(txt, word):
+def depositValue(txt, size):
+    highbit = 0x00
     if txt[0] == '^':
+        highbit |= 0x80
         txt = txt[1:]
-        if txt[0] == "'":
-            value = ord(txt[1]) | 0x80
-        else:
-            value = int(txt, 0) | 0x80
-        db(value)
+    if txt[0] == '^':
+        highbit |= 0x40
+        txt = txt[1:]
+    if txt[0] == "'":
+        value = ord(txt[1])
+        dv(value | highbit, size)
     # Allow for decimal, hex, octal and binary constants
     elif txt[0:2] == '0x' or txt[0:2] == '0o' or txt[0:2] == '0b' or txt.isnumeric():
-        dv(int(txt, 0), word)
+        dv(int(txt, 0) | highbit, size)
     elif txt[0] == '"':
         txt = txt[1:-1]
         while len(txt):
-            db(ord(txt[0])); txt = txt[1:]
+            dv(ord(txt[0]), 1); txt = txt[1:]
     else:
+        offset = False
         if txt[0] == '+':
             offset = True
             txt = txt[1:]
-        else:
-            offset = False
         value = findSym(txt, offset)
         if value:
-            dv(value, word)
+            dv(value, size)
         else:
-            dv(0, word)
+            dv(0, size)
 
-def depositValues(llist, word):
+def depositValues(llist, size):
     while len(llist):
-        depositValue(llist[0], word)
+        depositValue(llist[0], size)
         llist = llist[1:]
 
 def handleOpcode(llist):
@@ -175,7 +180,7 @@ def parseLine(llist):
         llist = llist[1:]
     # Pseudo opcode
     if len(llist) > 1 and llist[1] == 'EQU':
-        defineSym(llist[0], int(llist[2]))
+        defineSym(llist[0], int(llist[2], 0))
     elif len(llist):
         if llist[0] == 'ORG':
             loco = int(llist[1], 0)
@@ -198,7 +203,8 @@ def assemble():
             llist = llist[:llist.index(';')]
         except ValueError:
             pass
-        if len(llist): parseLine(llist)
+        if len(llist):
+            parseLine(llist)
 
 def writeOutputfile(outfileName):
     f = open(outfileName, 'w')
@@ -231,7 +237,7 @@ def writeListfile(listfileName):
     outc = 0
     for listItem in listFile:
         while lineno < listItem[1]:
-            f.write((30 - outc) * ' ')
+            f.write((54 - outc) * ' ')
             f.write('%s\n' % sourceCode[lineno])
             lineno += 1
             outc = 0
@@ -240,16 +246,16 @@ def writeListfile(listfileName):
             f.write('%04.4X ' % listItem[0]); outc += 5
             newline = False
         f.write('%02.2X ' % objectCode[listItem[0]]); outc += 3
-        if outc > 28:
+        if outc > 52:
             if lineno == listItem[1]:
-                f.write((30 - outc) * ' ')
+                f.write((54 - outc) * ' ')
                 f.write('%s\n' % sourceCode[lineno])
                 lineno += 1
             else:
                 f.write('\n')
             outc = 0
             newline = True
-    f.write((30 - outc) * ' ')
+    f.write((54 - outc) * ' ')
     f.write('%s\n' % sourceCode[lineno])
     f.close()
 
@@ -258,7 +264,7 @@ def writeListfile(listfileName):
 
 readSource(sys.argv[1])
 assemble()
-writeOutputfile(sys.argv[1].split('.')[0] + '.txt')
+writeOutputfile(sys.argv[1].split('.')[0] + '.hex')
 writeListfile(sys.argv[1].split('.')[0] + '.lst')
 
 print('%d lines done.' % len(sourceCode))

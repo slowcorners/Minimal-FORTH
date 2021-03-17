@@ -1,7 +1,6 @@
 ; ----------------------------------------------------------------------
 ; BOOT TABLE
 
-        ORG     0
 ORIGIN: JPA     CENT            ;  0: COLD start
         NOP
         JPA     WENT            ;  4: WARM start

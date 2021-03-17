@@ -6,8 +6,7 @@ HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
         DW      0
 LIT:    DW      LIT0
 LIT0:   JPS     _LIT            ; move (IP)+, R1
-        JPS     _PUSH           ; push R1
-        JPA     NEXT
+        JPA     PUSH            ; push R1 and NEXT
 
 HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
         DW      HLIT
@@ -30,11 +29,11 @@ HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** BRANCH
         DW      HBRAN
 ZBRAN:  DW      ZBRAN0
 ZBRAN0: LDR     SP
-        ROL
+        CPI     0
         BNE     ZBRA30          ; Low byte non-zero?
         INW     SP
         LDR     SP
-        ROL
+        CPI     0
         BNE     ZBRA50          ; High byte non-zero?
         INW     SP
         JPS     _BRAN           ; add (IP), IP
