@@ -9,11 +9,11 @@ WA:                             ; Word Address Register
 WAlo:   DB      0
 WAhi:   DB      0
 
-RegBC:                          ; Working register R1
+RegBC:                          ; Working registers B and C
 RegB:   DB      0
 RegC:   DB      0
 
-RegDE:                          ; Working register R2
+RegDE:                          ; Working registers D and E
 RegD:   DB      0
 RegE:   DB      0
 
