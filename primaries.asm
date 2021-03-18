@@ -5,8 +5,8 @@
 HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
         DW      0
 LIT:    DW      LIT0
-LIT0:   JPS     _LIT            ; R1 = (IP)+
-        JPA     PUSH            ; -(SP) = R1, NEXT
+LIT0:   JPS     _LIT            ; DE = (IP)+
+        JPA     PUSH            ; -(SP) = DE, NEXT
 
 HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
         DW      HLIT
