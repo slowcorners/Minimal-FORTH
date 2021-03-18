@@ -2,16 +2,16 @@
 ; INNER INTERPRETER
 
 DPUSH:  DEW     SP              ; -(SP) = R2
-        LDA     R2hi
+        LDA     RegC
         STR     SP
         DEW     SP
-        LDA     R2lo
+        LDA     RegB
         STR     SP
 PUSH:   DEW     SP              ; -(SP) = R1
-        LDA     R1hi
+        LDA     RegE
         STR     SP
         DEW     SP
-        LDA     R1lo
+        LDA     RegD
         STR     SP
 NEXT:   LDR     IP              ; WA = (IP)+
         STA     WAlo
@@ -20,9 +20,9 @@ NEXT:   LDR     IP              ; WA = (IP)+
         STA     WAhi
         INW     IP
 NEXT10: LDR     WA              ; R1 = (WA)+
-        STA     R1lo
+        STA     RegE
         INW     WA
         LDR     WA
-        STA     R1hi
+        STA     RegD
         INW     WA
-        JPR     R1              ; jump @(TMP)
+        JPR     RegDE           ; jump @(TMP)

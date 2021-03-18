@@ -1,9 +1,25 @@
 #!/usr/bin/python
+'''
+File: min8asm.py
+----------------------------------------------------------------------
+m i n 8 a s m
+
+A minimal assembler for the Minimal-CPU.
+
+Date:       2021-03-18
+Version:    0.1
+Author:     Nils "slowcorners" Kullberg
+License:    MIT Open Source Initiative
+----------------------------------------------------------------------
+'''
 
 import sys
 
+# ----------------------------------------
+# Minimal v 2.0 OPCODE definitions
+
 opcodes = {
-    'NOP': (0, 0),  'WIN': (1, 0),  'OUT': (2, 0),  'CLC': (3, 0),
+    'NOP': (0, 0),  'BNK': (1, 0),  'OUT': (2, 0),  'CLC': (3, 0),
     'SEC': (4, 0),  'LSL': (5, 0),  'ROL': (6, 0),  'LSR': (7, 0),
     'ROR': (8, 0),  'ASR': (9, 0),  'INP': (10, 0), 'NEG': (11, 0),
     'INC': (12, 0), 'DEC': (13, 0), 'LDI': (14, 1), 'ADI': (15, 1),
@@ -21,6 +37,9 @@ opcodes = {
     'BCC': (60, 2), 'BCS': (61, 2), 'BPL': (62, 2), 'BMI': (63, 2)
 }
 
+# ----------------------------------------
+# Global Definitions and Variables
+
 WORD = 2
 BYTE = 1
 
@@ -35,9 +54,15 @@ if len(sys.argv) != 2:
     print('usage: min8asm.py <sourcefile>')
     sys.exit(1)
 
+# ----------------------------------------
+# Write error message with source line
+
 def error(txt):
     print('%s on line %d' % (txt, lineno))
     print(sourceCode[lineno])
+
+# ----------------------------------------
+# Read source file(s) into sourceCode
 
 def readSource(fn):
     global sourceCode
@@ -59,7 +84,7 @@ def readSource(fn):
     f.close()
 
 # ----------------------------------------
-# DEPOSIT ITEMS INTO OBJECT CODE
+# Deposit various items into objectCode
 
 def db(b):
     global loco, objectCode, listFile
@@ -79,7 +104,7 @@ def ds(n):
     loco += n
 
 # ----------------------------------------
-# SYMBOL TABLE OPERATIONS
+# Symbol Table Operations
 
 def findSym(name, offsFlag = False):
     global symtab
@@ -121,7 +146,7 @@ def defineSym(name, value = loco):
         symtab[name] = [True, value]
 
 # ----------------------------------------
-# OBJECT CODE OPERATIONS
+# Object Code Operations
 
 def depositValue(txt, size):
     highbit = 0x00
@@ -170,7 +195,10 @@ def handleOpcode(llist):
     elif opcode[1] == 1:
         depositValue(llist[0], BYTE); llist = llist[1:]
     if opcode[0] != 0xFF and len(llist):
-        error("Extra text after opcode")
+        error("Extra text after instruction")
+
+# ----------------------------------------
+# Higher level operations
 
 def parseLine(llist):
     global loco
@@ -280,3 +308,6 @@ writeOutputfile(sys.argv[1].split('.')[0] + '.hex')
 writeListfile(sys.argv[1].split('.')[0] + '.lst')
 
 print('%d lines done.' % len(sourceCode))
+
+# End of file: min8asm.py
+# ----------------------------------------------------------------------

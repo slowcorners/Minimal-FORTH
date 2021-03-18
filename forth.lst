@@ -1,3 +1,16 @@
+                                                      ; File: forth.asm
+                                                      ; ----------------------------------------------------------------------
+                                                      ; M i n i m a l - F O R T H
+                                                      ;
+                                                      ; A minimal FORTH for the Minimal-CPU.
+                                                      ;
+                                                      ; Date:         2021-03-18
+                                                      ; Version:      0.1
+                                                      ; Author:       Nils "slowcorners" Kullberg
+                                                      ; License:      MIT Open Source Initiative
+                                                      ; ----------------------------------------------------------------------
+                                                      
+                                                      
                                                               ORG     0x8000
                                                       
                                                       
@@ -153,7 +166,7 @@
 80BF 3D CA 80                                                 BCS     XOR20           ; C is set, check 1b7 for zero
                                                               ; 2b7 is clear
 80C2 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is b7 set?
-80C4 3F 00 00                                                 BMI     XOR90           ; 1b7 is set and 2b7 is clear, shift in C which is set
+80C4 3F D0 80                                                 BMI     XOR40           ; 1b7 is set and 2b7 is clear, shift in C which is set
 80C7 14 CF 80                                                 JPA     XOR30           ; 1b7 and 2b7 are both zero, clear C and shift in 
                                                               ; 2b7 is set, check 1b7 for zero
 80CA 11 00                                            XOR20:  CPI     0
@@ -170,7 +183,7 @@
                                                       
 80DB 15 30 80                                         NOT:    LDA     RegD            ; Load operand
 80DE 0B                                                       NEG                     ; Two-complement negation
-80DF 10 01                                                    SBI     1               ; Adjust to become bitwise not
+80DF 10 01                                                    SBI     1               ; Adjust to bitwise not
 80E1 16 30 80                                                 STA     RegD            ; Store result
 80E4 39                                                       RTS                     ; Done
                                                       
@@ -180,16 +193,16 @@
                                                       ; INNER INTERPRETER
                                                       
 80E5 2F 32 80                                         DPUSH:  DEW     SP              ; -(SP) = R2
-80E8 15 00 00                                                 LDA     R2hi
+80E8 15 2F 80                                                 LDA     RegC
 80EB 1E 32 80                                                 STR     SP
 80EE 2F 32 80                                                 DEW     SP
-80F1 15 00 00                                                 LDA     R2lo
+80F1 15 2E 80                                                 LDA     RegB
 80F4 1E 32 80                                                 STR     SP
 80F7 2F 32 80                                         PUSH:   DEW     SP              ; -(SP) = R1
-80FA 15 00 00                                                 LDA     R1hi
+80FA 15 31 80                                                 LDA     RegE
 80FD 1E 32 80                                                 STR     SP
 8100 2F 32 80                                                 DEW     SP
-8103 15 00 00                                                 LDA     R1lo
+8103 15 30 80                                                 LDA     RegD
 8106 1E 32 80                                                 STR     SP
 8109 1D 2A 80                                         NEXT:   LDR     IP              ; WA = (IP)+
 810C 16 2C 80                                                 STA     WAlo
@@ -198,12 +211,12 @@
 8115 16 2D 80                                                 STA     WAhi
 8118 2E 2A 80                                                 INW     IP
 811B 1D 2C 80                                         NEXT10: LDR     WA              ; R1 = (WA)+
-811E 16 00 00                                                 STA     R1lo
+811E 16 31 80                                                 STA     RegE
 8121 2E 2C 80                                                 INW     WA
 8124 1D 2C 80                                                 LDR     WA
-8127 16 00 00                                                 STA     R1hi
+8127 16 30 80                                                 STA     RegD
 812A 2E 2C 80                                                 INW     WA
-812D 1C 00 00                                                 JPR     R1              ; jump @(TMP)
+812D 1C 30 80                                                 JPR     RegDE           ; jump @(TMP)
                                                       
                                                       ; INCLUDE         primaries.asm
                                                       

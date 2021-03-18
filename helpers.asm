@@ -82,7 +82,7 @@ XOR10:  LDA     RegE            ; Get second operand
         BCS     XOR20           ; C is set, check 1b7 for zero
         ; 2b7 is clear
         CPI     0               ; Is first operand < 0, i.e. is b7 set?
-        BMI     XOR90           ; 1b7 is set and 2b7 is clear, shift in C which is set
+        BMI     XOR40           ; 1b7 is set and 2b7 is clear, shift in C which is set
         JPA     XOR30           ; 1b7 and 2b7 are both zero, clear C and shift in 
         ; 2b7 is set, check 1b7 for zero
 XOR20:  CPI     0
@@ -99,6 +99,6 @@ XOR40:  ROL                     ; Shift whatever is in C into result
 
 NOT:    LDA     RegD            ; Load operand
         NEG                     ; Two-complement negation
-        SBI     1               ; Adjust to become bitwise not
+        SBI     1               ; Adjust to bitwise not
         STA     RegD            ; Store result
         RTS                     ; Done
