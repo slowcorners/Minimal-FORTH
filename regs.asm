@@ -2,30 +2,39 @@
 ; THE VIRTUAL FORTH MACHINE REGISTERS
 
 IP:                             ; Instruction Pointer
-IPlo:   DB      0
-IPhi:   DB      0
+IP.0:   DB      0
+IP.1:   DB      0
 
 WA:                             ; Word Address Register
-WAlo:   DB      0
-WAhi:   DB      0
-
-RegBC:                          ; Working registers B and C
-RegB:   DB      0
-RegC:   DB      0
-
-RegDE:                          ; Working registers D and E
-RegD:   DB      0
-RegE:   DB      0
+WA.0:   DB      0
+WA.1:   DB      0
 
 SP:                             ; Data stack pointer
-SPlo:   DB      0
-SPhi:   DB      0
+SP.0:   DB      0
+SP.1:   DB      0
 
 RP:                             ; Return stack pointer
-RPlo:   DB      0
-RPhi:   DB      0
+RP.0:   DB      0
+RP.1:   DB      0
 
 UP:                             ; User area pointer
-UPlo:   DB      0
-UPhi:   DB      0
+UP.0:   DB      0
+UP.1:   DB      0
 
+R1:                             ; Working register R1
+R1.0:   DB      0
+R1.1:   DB      0
+R1.2:   DB      0
+R1.3:   DB      0
+
+R2:                             ; Working register R2
+R2.0:   DB      0
+R2.1:   DB      0
+R2.2:   DB      0
+R2.3:   DB      0
+
+R3:                             ; Working register R3
+R3.0:   DB      0
+R3.1:   DB      0
+R3.2:   DB      0
+R3.3:   DB      0

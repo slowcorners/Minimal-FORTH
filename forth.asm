@@ -1,4 +1,3 @@
-; File: forth.asm
 ; ----------------------------------------------------------------------
 ; M i n i m a l - F O R T H
 ;
@@ -12,10 +11,11 @@
 
 
         ORG     0x8000
-
+        
 INCLUDE         defs.asm
 INCLUDE         boot-table.asm
 INCLUDE         regs.asm
 INCLUDE         helpers.asm
 INCLUDE         inner.asm
 INCLUDE         primaries.asm
+INCLUDE         coldwarm.asm

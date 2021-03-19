@@ -106,7 +106,7 @@ def ds(n):
 # ----------------------------------------
 # Symbol Table Operations
 
-def findSym(name, offsFlag = False):
+def findSym(name, offsFlag, nsb):
     global symtab
     try:
         symDefined = symtab[name][0]
@@ -118,8 +118,13 @@ def findSym(name, offsFlag = False):
             symValue = symtab[name][1] - loco
         else:
             symValue = symtab[name][1]
+        if nsb:
+            if nsb == 'LSB':
+                symValue = symValue & 0xFF
+            else:
+                symValue = symValue >> 8
     else:
-        symtab[name].append((loco, offsFlag))
+        symtab[name].append((loco, offsFlag, nsb))
         symValue = None
     return symValue
 
@@ -137,11 +142,19 @@ def defineSym(name, value = loco):
         while len(forwards):
             forward = forwards[0]
             if forward[1]:
-                objectCode[forward[0]] = (value - forward[0]) & 0xFF
-                objectCode[forward[0] + 1] = (value - forward[0]) >> 8
+                if forward[2] == 'MSB':
+                    objectCode[forward[0]] = (value - forward[0]) >> 8
+                else:
+                    objectCode[forward[0]] = (value - forward[0]) & 0xFF
+                if forward[2] == None:
+                    objectCode[forward[0] + 1] = (value - forward[0]) >> 8
             else:
-                objectCode[forward[0]] = value & 0xFF
-                objectCode[forward[0] + 1] = value >> 8
+                if forward[2] == 'MSB':
+                    objectCode[forward[0]] = value >> 8
+                else:
+                    objectCode[forward[0]] = value & 0xFF
+                if forward[2] == None:
+                    objectCode[forward[0] + 1] = value >> 8
             forwards = forwards[1:]
         symtab[name] = [True, value]
 
@@ -150,6 +163,13 @@ def defineSym(name, value = loco):
 
 def depositValue(txt, size):
     highbit = 0x00
+    nsb = None
+    if txt[0] == '<':
+        nsb = 'LSB'
+        txt = txt[1:]
+    if txt[0] == '>':
+        nsb = 'MSB'
+        txt = txt[1:]
     if txt[0] == '^':
         highbit |= 0x80
         txt = txt[1:]
@@ -171,9 +191,14 @@ def depositValue(txt, size):
         if txt[0] == '+':
             offset = True
             txt = txt[1:]
-        value = findSym(txt, offset)
+        value = findSym(txt, offset, nsb)
         if value:
-            dv(value, size)
+            if nsb == 'MSB':
+                dv(value >> 8, size)
+            elif nsb == 'LSB':
+                dv(value & 0xFF, size)
+            else:
+                dv(value, size)
         else:
             dv(0, size)
 
