@@ -13,12 +13,7 @@ CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
         STA     IP.1            ; :
         JPA     NEXT            ; ... and over to FORTH VM
 
-
-
-TEST:   DW      LIT 0x1122 LIT 0x3344 PLUS BRAN +TEST
-        
-
-
+TEST:   DW      LIT '7' LIT 10 DIGIT BRAN +TEST
 
 WENT:   NOP
 

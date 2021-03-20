@@ -83,6 +83,42 @@ XLOOP0: CLW     R1              ; Push a one
         JPS     _PUSH1          ; :
         JPA     XPLOO0          ; (+LOOP)
 
+HXDO:   DB      ^4 "(DO" ^')'                           ; ***** (DO)
+        DW      HXLOOP
+XDO:    DW      XDO0
+XDO0:   JPS     _POP1           ; Loop counter
+        JPS     _POP2           ; Limit
+        JPS     _RPUSH2         ; Push limit onto rstack
+        JPS     _RPUSH1         ; Push loop counter onto rstack
+        JPA     NEXT
+
+HI:     DB      ^1 ^'I'                                 ; ***** I
+        DW      HXDO
+I:      DW      I0
+I0:     JPS     _RGET1          ; Get loop counter
+        JPS     _PUSH1          ; Push it onto dstack
+        JPA     NEXT
+
+HDIGIT: DB      ^5 "DIGI" ^'T'                          ; ***** DIGIT
+        DW      HI
+DIGIT:  DW      DIGIT0
+DIGIT0: JPS     _POP2           ; Get base into R2.0
+        JPS     _POP1           ; Get character into R1.0
+        LDA     R1.0            ; Get character into A
+        SBI     '0'             ; Assume '0' - '9'
+        BMI     DIGI88          ; Oops! Negative
+        CPI     10              ; Greater than 9?
+        BMI     DIGI10          ; No, it is 0 - 9
+        ; 'A' - 'Z' case
+        SBI     7               ; ch -= ('A' - '0') + 10
+DIGI10: CPA     R2.0            ; Greater than base?
+        BMI     DIGI77
+        JPA     DIGI88
+DIGI77: STA     R1.0            ; Store binary value
+        JPS     _PUSH1          ; Push the value
+        JPA     PUSHT           ; Push TRUE; NEXT
+DIGI88: JPA     PUSHF           ; Push FALSE; NEXT
+
 HPLUS:  DB      ^1 ^'+'                                 ; ***** +
         DW      0
 PLUS:   DW      PLUS0

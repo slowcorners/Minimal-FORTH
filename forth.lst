@@ -23,22 +23,22 @@
                                                       ; ----------------------------------------------------------------------
                                                       ; BOOT TABLE
                                                       
-8000 14 89 84                                         ORIGIN: JPA     CENT            ;  0: COLD start
+8000 14 F9 84                                         ORIGIN: JPA     CENT            ;  0: COLD start
 8003 00                                                       NOP
-8004 14 B3 84                                                 JPA     WENT            ;  4: WARM start
+8004 14 23 85                                                 JPA     WENT            ;  4: WARM start
 8007 00                                                       NOP
 8008 00 00                                                    DW      0               ;  8: Processor type in radix 36
 800A 00 00                                                    DW      0               ; 10: Revision
 800C 00 00                                                    DW      HFORTH          ; 12: Pointer to latest word defined
 800E 7F 00                                                    DW      CH_DEL          ; 14: Backspace character
 8010 00 00                                                    DW      XUP             ; 16: Pointer to initial user area
-8012 34 85                                                    DW      XSP             ; 18: Initial data stack pointer
-8014 B4 85                                                    DW      XRP             ; 20: Initial data stack pointer
+8012 A4 85                                                    DW      XSP             ; 18: Initial data stack pointer
+8014 24 86                                                    DW      XRP             ; 20: Initial data stack pointer
 8016 00 00                                                    DW      XTIB            ; 22: Pointer to terminal input buffer
 8018 1F 00                                                    DW      31              ; 24: Maximum FORTH word name length
 801A 00 00                                                    DW      0               ; 26: Initial WARNING mode
-801C B4 84                                                    DW      XDP             ; 28: Initial FENCE
-801E B4 84                                                    DW      XDP             ; 30: Initial HERE
+801C 24 85                                                    DW      XDP             ; 28: Initial FENCE
+801E 24 85                                                    DW      XDP             ; 30: Initial HERE
 8020 00 00                                                    DW      XXVOC           ; 32: Pointer to initial VOC-LINK
 8022 00 00                                                    DW      DSKBF           ; 34: Initial FIRST
 8024 00 00                                                    DW      ENDBF           ; 36: Initial LIMIT
@@ -616,122 +616,173 @@
 8359 2E 2C 80                                                 INW     WA
 835C 1C 34 80                                                 JPR     R1              ; jump @(R1)
                                                       
+                                                      ; ------------------------------
+                                                      ;       Push TRUE and FALSE
+                                                      
+835F 2C 34 80                                         PUSHT:  CLW     R1              ; A zero
+8362 2F 34 80                                                 DEW     R1              ; Make it into a -1 i.e. TRUE flag
+8365 38 87 81                                                 JPS     _PUSH1          ; Push onto dstack
+8368 14 38 83                                                 JPA     NEXT
+                                                      
+836B 2C 34 80                                         PUSHF:  CLW     R1              ; A zero
+836E 2F 34 80                                                 DEW     R1              ; Make it into a -1 i.e. TRUE flag
+8371 38 87 81                                                 JPS     _PUSH1          ; Push onto dstack
+8374 14 38 83                                                 JPA     NEXT
+                                                      
                                                       ; INCLUDE         primaries.asm
                                                       
                                                       ; ----------------------------------------------------------------------
                                                       ; FORTH PRIMARIES
                                                       ;
                                                       
-835F 83 4C 49 D4                                      HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
-8363 00 00                                                    DW      0
-8365 67 83                                            LIT:    DW      LIT0
-8367 38 40 80                                         LIT0:   JPS     _LIT            ; R1 = (IP)+
-836A 14 26 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
+8377 83 4C 49 D4                                      HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
+837B 00 00                                                    DW      0
+837D 7F 83                                            LIT:    DW      LIT0
+837F 38 40 80                                         LIT0:   JPS     _LIT            ; R1 = (IP)+
+8382 14 26 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
                                                       
-836D 87 45 58 45 43 55 54 C5                          HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
-8375 5F 83                                                    DW      HLIT
-8377 79 83                                            EXEC:   DW      EXEC0
-8379 1D 2E 80                                         EXEC0:  LDR     SP              ; WA = (SP)+
-837C 16 2C 80                                                 STA     WA.0
-837F 2E 2E 80                                                 INW     SP
-8382 1D 2E 80                                                 LDR     SP
-8385 16 2D 80                                                 STA     WA.1
-8388 2E 2E 80                                                 INW     SP
-838B 14 4A 83                                                 JPA     NEXT10          ; jump @(WA)+
+8385 87 45 58 45 43 55 54 C5                          HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
+838D 77 83                                                    DW      HLIT
+838F 91 83                                            EXEC:   DW      EXEC0
+8391 1D 2E 80                                         EXEC0:  LDR     SP              ; WA = (SP)+
+8394 16 2C 80                                                 STA     WA.0
+8397 2E 2E 80                                                 INW     SP
+839A 1D 2E 80                                                 LDR     SP
+839D 16 2D 80                                                 STA     WA.1
+83A0 2E 2E 80                                                 INW     SP
+83A3 14 4A 83                                                 JPA     NEXT10          ; jump @(WA)+
                                                       
-838E 86 42 52 41 4E 43 C8                             HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
-8395 6D 83                                                    DW      HEXEC
-8397 99 83                                            BRAN:   DW      BRAN0
-8399 38 53 80                                         BRAN0:  JPS     _BRAN           ; IP = IP + (IP)
-839C 14 38 83                                                 JPA     NEXT
+83A6 86 42 52 41 4E 43 C8                             HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
+83AD 85 83                                                    DW      HEXEC
+83AF B1 83                                            BRAN:   DW      BRAN0
+83B1 38 53 80                                         BRAN0:  JPS     _BRAN           ; IP = IP + (IP)
+83B4 14 38 83                                                 JPA     NEXT
                                                       
-839F 87 30 42 52 41 4E 43 C8                          HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** 0BRANCH
-83A7 8E 83                                                    DW      HBRAN
-83A9 AB 83                                            ZBRAN:  DW      ZBRAN0
-83AB 1D 2E 80                                         ZBRAN0: LDR     SP
-83AE 11 00                                                    CPI     0               ; Low byte non-zero?
-83B0 3A C4 83                                                 BNE     ZBRA10          ; YES: Do not branch
-83B3 2E 2E 80                                                 INW     SP
-83B6 1D 2E 80                                                 LDR     SP
-83B9 11 00                                                    CPI     0               ; High byte non-zero?
-83BB 3A C7 83                                                 BNE     ZBRA20          ; YES: Do not branch
-83BE 2E 2E 80                                                 INW     SP
-83C1 14 99 83                                                 JPA     BRAN0           ; IP = IP + (IP); NEXT
-83C4 2E 2E 80                                         ZBRA10: INW     SP
-83C7 2E 2E 80                                         ZBRA20: INW     SP
-83CA 2E 2A 80                                                 INW     IP              ; Just skip jump offset
-83CD 2E 2A 80                                                 INW     IP
-83D0 14 38 83                                                 JPA     NEXT
+83B7 87 30 42 52 41 4E 43 C8                          HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** 0BRANCH
+83BF A6 83                                                    DW      HBRAN
+83C1 C3 83                                            ZBRAN:  DW      ZBRAN0
+83C3 1D 2E 80                                         ZBRAN0: LDR     SP
+83C6 11 00                                                    CPI     0               ; Low byte non-zero?
+83C8 3A DC 83                                                 BNE     ZBRA10          ; YES: Do not branch
+83CB 2E 2E 80                                                 INW     SP
+83CE 1D 2E 80                                                 LDR     SP
+83D1 11 00                                                    CPI     0               ; High byte non-zero?
+83D3 3A DF 83                                                 BNE     ZBRA20          ; YES: Do not branch
+83D6 2E 2E 80                                                 INW     SP
+83D9 14 B1 83                                                 JPA     BRAN0           ; IP = IP + (IP); NEXT
+83DC 2E 2E 80                                         ZBRA10: INW     SP
+83DF 2E 2E 80                                         ZBRA20: INW     SP
+83E2 2E 2A 80                                                 INW     IP              ; Just skip jump offset
+83E5 2E 2A 80                                                 INW     IP
+83E8 14 38 83                                                 JPA     NEXT
                                                       
-83D3 87 28 2B 4C 4F 4F 50 A9                          HXPLOO: DB      ^7 "(+LOOP" ^')'                        ; ***** (+LOOP)
-83DB 9F 83                                                    DW      HZBRAN
-83DD DF 83                                            XPLOO:  DW      XPLOO0
-83DF 38 C5 80                                         XPLOO0: JPS     _GET2           ; R2 = increment
-83E2 38 2D 81                                                 JPS     _RPOP1          ; R1 = (RP)+ [borrow]
-83E5 38 24 82                                                 JPS     _ADD16          ; R1 = counter'
-83E8 38 44 81                                                 JPS     _RGET2          ; R2 = limit
-83EB 38 E1 81                                                 JPS     _RPUSH1         ; -(RP) = R1' [restore]
-83EE 38 69 81                                                 JPS     _RPOP3          ; R3 = Increment [pop!]
-83F1 15 3D 80                                                 LDA     R3.1            ; Is increment negative?
-83F4 11 00                                                    CPI     0               ; :
-83F6 3E FC 83                                                 BPL     XPLO10
+83EB 87 28 2B 4C 4F 4F 50 A9                          HXPLOO: DB      ^7 "(+LOOP" ^')'                        ; ***** (+LOOP)
+83F3 B7 83                                                    DW      HZBRAN
+83F5 F7 83                                            XPLOO:  DW      XPLOO0
+83F7 38 C5 80                                         XPLOO0: JPS     _GET2           ; R2 = increment
+83FA 38 2D 81                                                 JPS     _RPOP1          ; R1 = (RP)+ [borrow]
+83FD 38 24 82                                                 JPS     _ADD16          ; R1 = counter'
+8400 38 44 81                                                 JPS     _RGET2          ; R2 = limit
+8403 38 E1 81                                                 JPS     _RPUSH1         ; -(RP) = R1' [restore]
+8406 38 69 81                                                 JPS     _RPOP3          ; R3 = Increment [pop!]
+8409 15 3D 80                                                 LDA     R3.1            ; Is increment negative?
+840C 11 00                                                    CPI     0               ; :
+840E 3E 14 84                                                 BPL     XPLO10
                                                               ; Handle negative increment
-83F9 38 01 83                                                 JPS     _XCH16          ; R1 <-> R2
+8411 38 01 83                                                 JPS     _XCH16          ; R1 <-> R2
                                                               ; Compare counter to limit
-83FC 15 35 80                                         XPLO10: LDA     R1.1            ; Compare MSB
-83FF 19 39 80                                                 CPA     R2.1            ; :
-8402 3D 11 84                                                 BCS     XPLO20          ; R1 is greater, stop looping here
-8405 3F 99 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
+8414 15 35 80                                         XPLO10: LDA     R1.1            ; Compare MSB
+8417 19 39 80                                                 CPA     R2.1            ; :
+841A 3D 29 84                                                 BCS     XPLO20          ; R1 is greater, stop looping here
+841D 3F B1 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
                                                               ; MSBs are equal
-8408 15 34 80                                                 LDA     R1.0            ; Compare LSB
-840B 19 38 80                                                 CPA     R2.0            
-840E 3F 99 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
+8420 15 34 80                                                 LDA     R1.0            ; Compare LSB
+8423 19 38 80                                                 CPA     R2.0            
+8426 3F B1 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
                                                               ; Limit reached, cleanup and stop looping
-8411 2E 30 80                                         XPLO20: INW     RP              ; Drop loop counter
-8414 2E 30 80                                                 INW     RP              ; :
-8417 2E 30 80                                                 INW     RP              ; Drop loop limit
-841A 2E 30 80                                                 INW     RP              ; :
-841D 2E 2A 80                                                 INW     IP              ; Skip branch offset
-8420 2E 2A 80                                                 INW     IP              ; :
-8423 14 38 83                                                 JPA     NEXT
+8429 2E 30 80                                         XPLO20: INW     RP              ; Drop loop counter
+842C 2E 30 80                                                 INW     RP              ; :
+842F 2E 30 80                                                 INW     RP              ; Drop loop limit
+8432 2E 30 80                                                 INW     RP              ; :
+8435 2E 2A 80                                                 INW     IP              ; Skip branch offset
+8438 2E 2A 80                                                 INW     IP              ; :
+843B 14 38 83                                                 JPA     NEXT
                                                       
-8426 86 28 4C 4F 4F 50 A9                             HXLOOP: DB      ^6 "(LOOP" ^')'                         ; ***** (LOOP)
-842D D3 83                                                    DW      HXPLOO
-842F 31 84                                            XLOOP:  DW      XLOOP0
-8431 2C 34 80                                         XLOOP0: CLW     R1              ; Push a one
-8434 2E 34 80                                                 INW     R1              ; :
-8437 38 87 81                                                 JPS     _PUSH1          ; :
-843A 14 DF 83                                                 JPA     XPLOO0          ; (+LOOP)
+843E 86 28 4C 4F 4F 50 A9                             HXLOOP: DB      ^6 "(LOOP" ^')'                         ; ***** (LOOP)
+8445 EB 83                                                    DW      HXPLOO
+8447 49 84                                            XLOOP:  DW      XLOOP0
+8449 2C 34 80                                         XLOOP0: CLW     R1              ; Push a one
+844C 2E 34 80                                                 INW     R1              ; :
+844F 38 87 81                                                 JPS     _PUSH1          ; :
+8452 14 F7 83                                                 JPA     XPLOO0          ; (+LOOP)
                                                       
-843D 81 AB                                            HPLUS:  DB      ^1 ^'+'                                 ; ***** +
-843F 00 00                                                    DW      0
-8441 43 84                                            PLUS:   DW      PLUS0
-8443 38 CC 80                                         PLUS0:  JPS     _POP2           ; Get second operand
-8446 38 89 80                                                 JPS     _POP1           ; Get first operand
-8449 38 24 82                                                 JPS     _ADD16          ; R1 = R1 + R2
-844C 14 26 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
+8455 84 28 44 4F A9                                   HXDO:   DB      ^4 "(DO" ^')'                           ; ***** (DO)
+845A 3E 84                                                    DW      HXLOOP
+845C 5E 84                                            XDO:    DW      XDO0
+845E 38 89 80                                         XDO0:   JPS     _POP1           ; Loop counter
+8461 38 CC 80                                                 JPS     _POP2           ; Limit
+8464 38 FF 81                                                 JPS     _RPUSH2         ; Push limit onto rstack
+8467 38 E1 81                                                 JPS     _RPUSH1         ; Push loop counter onto rstack
+846A 14 38 83                                                 JPA     NEXT
                                                       
-844F 82 44 AB                                         HDPLU:  DB      ^2 "D" ^'+'                             ; ***** D+
-8452 00 00                                                    DW      0
-8454 56 84                                            DPLUS:  DW      DPLUS0
-8456 38 D3 80                                         DPLUS0: JPS     _DPOP2          ; Get second operand
-8459 38 90 80                                                 JPS     _DPOP1          ; Get first operand
-845C 38 31 82                                                 JPS     _ADD32          ; R1X = R1X + R2X
-845F 14 14 83                                                 JPA     DPUSH           ; -(SP) = R1X; NEXT
+846D 81 C9                                            HI:     DB      ^1 ^'I'                                 ; ***** I
+846F 55 84                                                    DW      HXDO
+8471 73 84                                            I:      DW      I0
+8473 38 26 81                                         I0:     JPS     _RGET1          ; Get loop counter
+8476 38 87 81                                                 JPS     _PUSH1          ; Push it onto dstack
+8479 14 38 83                                                 JPA     NEXT
                                                       
-8462 85 4D 49 4E 55 D3                                HMINUS: DB      ^5 "MINU" ^'S'                          ; ***** MINUS
-8468 00 00                                                    DW      0
-846A 6C 84                                            MINUS:  DW      MINUS0
-846C 38 89 80                                         MINUS0: JPS     _POP1           ; Get operand
-846F 38 E0 82                                                 JPS     _NEG16          ; Negate
-8472 14 26 83                                                 JPA     PUSH
+847C 85 44 49 47 49 D4                                HDIGIT: DB      ^5 "DIGI" ^'T'                          ; ***** DIGIT
+8482 6D 84                                                    DW      HI
+8484 86 84                                            DIGIT:  DW      DIGIT0
+8486 38 CC 80                                         DIGIT0: JPS     _POP2           ; Get base into R2.0
+8489 38 89 80                                                 JPS     _POP1           ; Get character into R1.0
+848C 15 34 80                                                 LDA     R1.0            ; Get character into A
+848F 10 30                                                    SBI     '0'             ; Assume '0' - '9'
+8491 3F AA 84                                                 BMI     NOTDIGIT        ; Oops! Negative
+8494 11 0A                                                    CPI     10              ; Greater than 9?
+8496 3F 9B 84                                                 BMI     DIGITFOUND      ; No, it is 0 - 9
+                                                              ; 'A' - 'Z' case
+8499 10 07                                                    SBI     7               ; ch -= ('A' - '0') + 10
+                                                      DIGITFOUND:
+849B 19 38 80                                                 CPA     R2.0            ; Greater than base?
+849E 3F A4 84                                                 BMI     DIGITOK
+84A1 14 AA 84                                                 JPA     NOTDIGIT
+                                                      DIGITOK:
+84A4 38 87 81                                                 JPS     _PUSH1          ; Push the value
+84A7 14 5F 83                                                 JPA     PUSHT           ; Push TRUE; NEXT
+                                                      NOTDIGIT:
+84AA 14 6B 83                                                 JPA     PUSHF           ; Push FALSE; NEXT
                                                       
-8475 86 44 4D 49 4E 55 D3                             HDMINU: DB      ^6 "DMINU" ^'S'                         ; ***** DMINUS
-847C 00 00                                                    DW      0
-847E 80 84                                            DMINU:  DW      DMINU0
-8480 38 90 80                                         DMINU0: JPS     _DPOP1          ; Get operand
-8483 38 EE 82                                                 JPS     _NEG32          ; Negate
-8486 14 14 83                                                 JPA     DPUSH
+84AD 81 AB                                            HPLUS:  DB      ^1 ^'+'                                 ; ***** +
+84AF 00 00                                                    DW      0
+84B1 B3 84                                            PLUS:   DW      PLUS0
+84B3 38 CC 80                                         PLUS0:  JPS     _POP2           ; Get second operand
+84B6 38 89 80                                                 JPS     _POP1           ; Get first operand
+84B9 38 24 82                                                 JPS     _ADD16          ; R1 = R1 + R2
+84BC 14 26 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
+                                                      
+84BF 82 44 AB                                         HDPLU:  DB      ^2 "D" ^'+'                             ; ***** D+
+84C2 00 00                                                    DW      0
+84C4 C6 84                                            DPLUS:  DW      DPLUS0
+84C6 38 D3 80                                         DPLUS0: JPS     _DPOP2          ; Get second operand
+84C9 38 90 80                                                 JPS     _DPOP1          ; Get first operand
+84CC 38 31 82                                                 JPS     _ADD32          ; R1X = R1X + R2X
+84CF 14 14 83                                                 JPA     DPUSH           ; -(SP) = R1X; NEXT
+                                                      
+84D2 85 4D 49 4E 55 D3                                HMINUS: DB      ^5 "MINU" ^'S'                          ; ***** MINUS
+84D8 00 00                                                    DW      0
+84DA DC 84                                            MINUS:  DW      MINUS0
+84DC 38 89 80                                         MINUS0: JPS     _POP1           ; Get operand
+84DF 38 E0 82                                                 JPS     _NEG16          ; Negate
+84E2 14 26 83                                                 JPA     PUSH
+                                                      
+84E5 86 44 4D 49 4E 55 D3                             HDMINU: DB      ^6 "DMINU" ^'S'                         ; ***** DMINUS
+84EC 00 00                                                    DW      0
+84EE F0 84                                            DMINU:  DW      DMINU0
+84F0 38 90 80                                         DMINU0: JPS     _DPOP1          ; Get operand
+84F3 38 EE 82                                                 JPS     _NEG32          ; Negate
+84F6 14 14 83                                                 JPA     DPUSH
                                                       
                                                       
                                                       ; INCLUDE         coldwarm.asm
@@ -739,41 +790,36 @@
                                                       ; ----------------------------------------------------------------------
                                                       ; COLD AND WARM START ENTRY POINTS
                                                       
-8489 0E FE                                            CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
-848B 16 FF FF                                                 STA     0xFFFF          ; :
-848E 0E 34                                                    LDI     <XSP            ; Initialize FORTH SP
-8490 16 2E 80                                                 STA     SP.0            ; :
-8493 0E 85                                                    LDI     >XSP            ; :
-8495 16 2F 80                                                 STA     SP.1            ; :
-8498 0E A5                                                    LDI     <TEST           ; Initialize FORTH IP
-849A 16 2A 80                                                 STA     IP.0            ; :
-849D 0E 84                                                    LDI     >TEST           ; :
-849F 16 2B 80                                                 STA     IP.1            ; :
-84A2 14 38 83                                                 JPA     NEXT            ; ... and over to FORTH VM
+84F9 0E FE                                            CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
+84FB 16 FF FF                                                 STA     0xFFFF          ; :
+84FE 0E A4                                                    LDI     <XSP            ; Initialize FORTH SP
+8500 16 2E 80                                                 STA     SP.0            ; :
+8503 0E 85                                                    LDI     >XSP            ; :
+8505 16 2F 80                                                 STA     SP.1            ; :
+8508 0E 15                                                    LDI     <TEST           ; Initialize FORTH IP
+850A 16 2A 80                                                 STA     IP.0            ; :
+850D 0E 85                                                    LDI     >TEST           ; :
+850F 16 2B 80                                                 STA     IP.1            ; :
+8512 14 38 83                                                 JPA     NEXT            ; ... and over to FORTH VM
                                                       
+8515 7D 83 37 00 7D 83 0A 00 84 84 AF 83 F4 FF        TEST:   DW      LIT '7' LIT 10 DIGIT BRAN +TEST
                                                       
+8523 00                                               WENT:   NOP
                                                       
-84A5 65 83 22 11 65 83 44 33 41 84 97 83 F4 FF        TEST:   DW      LIT 0x1122 LIT 0x3344 PLUS BRAN +TEST
-                                                              
-                                                      
-                                                      
-                                                      
-84B3 00                                               WENT:   NOP
-                                                      
-84B4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XDP:    DW      0 0 0 0 0 0 0 0
-84C4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-84D4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-84E4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-84F4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-8504 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-8514 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-8524 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-8534 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XSP:    DW      0 0 0 0 0 0 0 0
+8524 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XDP:    DW      0 0 0 0 0 0 0 0
+8534 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
 8544 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
 8554 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
 8564 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
 8574 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
 8584 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
 8594 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-85A4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
-85B4 00 00                                            XRP:    DW      0
+85A4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XSP:    DW      0 0 0 0 0 0 0 0
+85B4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
+85C4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
+85D4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
+85E4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
+85F4 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
+8604 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
+8614 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00          DW      0 0 0 0 0 0 0 0
+8624 00 00                                            XRP:    DW      0

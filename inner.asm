@@ -26,3 +26,16 @@ NEXT10: LDR     WA              ; R1 = (WA)+
         STA     R1.1
         INW     WA
         JPR     R1              ; jump @(R1)
+
+; ------------------------------
+;       Push TRUE and FALSE
+
+PUSHT:  CLW     R1              ; A zero
+        DEW     R1              ; Make it into a -1 i.e. TRUE flag
+        JPS     _PUSH1          ; Push onto dstack
+        JPA     NEXT
+
+PUSHF:  CLW     R1              ; A zero
+        DEW     R1              ; Make it into a -1 i.e. TRUE flag
+        JPS     _PUSH1          ; Push onto dstack
+        JPA     NEXT
