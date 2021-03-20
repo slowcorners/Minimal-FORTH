@@ -173,7 +173,48 @@ PFIN77: LDI     5               ; Bump ptr to PFA
         CLB     R1.1            ; Clear MSB
         JPS     _PUSH1          ; Push length byte
         JPA     PUSHT           ; Done
-        
+
+HENCL:  DB      ^7 "ENCLOS" ^'E'                        ; ***** ENCLOSE
+        DW      HPFIND
+ENCL:   DW      ENCL0
+ENCL0:  JPS     _POP3           ; Get delimiter char
+        JPS     _GET1           ; Get addr of input
+        CLW     R2              ; Initialize char index
+        ; Scan preceeding delimiters
+ENCL10: LDR     R1              ; Get char from input
+        CPI     0               ; Is it <NUL>?
+        BEQ     ENCL50          ; YES: <NUL> before first non-delimiter
+        CPA     R3.0            ; Is it a delimiter?
+        BNE     ENCL20          ; NO: We have the start of next token
+        INW     R1              ; Bump to next char ...
+        INB     R2.0            ; ... also increase index
+        JPA     ENCL10          ; Go back to look at next char
+        ; Start of token
+ENCL20: JPS     _PUSH2          ; Push result n1 (first char of token)
+ENCL30: LDR     R1              ; Get char from input
+        CPI     0               ; Is it <NUL>?
+        BEQ     ENCL60          ; YES: <NUL> found
+        CPA     R3.0            ; Is it a delimiter?
+        BEQ     ENCL40          ; YES: We have the end of the token
+        INW     R1              ; Bump to next char ...
+        INB     R2.0            ; ... also increase index
+        JPA     ENCL30          ; Go back to look at next char
+        ; End of token
+ENCL40: JPS     _PUSH2          ; Push result n2 (ending delimiter)
+        INB     R2.0            ; Also push n3 ...
+        JPS     _PUSH2          ; : ... (index to first non-scanned char)
+        JPA     NEXT            ; Done
+        ; <NUL> appears before token
+ENCL50: INB     R2.0            ; Push i + 1
+        JPS     _PUSH2          ; :
+        DEB     R2.0            ; Push i
+        JPS     _PUSH2          ; : ... indicating <NUL> before token
+        JPA     NEXT            ; Done
+        ; Token ends with a <NUL>
+ENCL60: JPS     _PUSH2          ; Push i twice to indicate ...
+        JPS     _PUSH2          ; : ... that token ends in a <NUL>
+        JPA     NEXT            ; Done
+
 HPLUS:  DB      ^1 ^'+'                                 ; ***** +
         DW      0
 PLUS:   DW      PLUS0

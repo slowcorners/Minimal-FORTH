@@ -23,22 +23,22 @@
                                                       ; ----------------------------------------------------------------------
                                                       ; BOOT TABLE
                                                       
-8000 14 86 85                                         ORIGIN: JPA     CENT            ;  0: COLD start
+8000 14 F0 85                                         ORIGIN: JPA     CENT            ;  0: COLD start
 8003 00                                                       NOP
-8004 14 B2 85                                                 JPA     WENT            ;  4: WARM start
+8004 14 18 86                                                 JPA     WENT            ;  4: WARM start
 8007 00                                                       NOP
 8008 00 00                                                    DW      0               ;  8: Processor type in radix 36
 800A 00 00                                                    DW      0               ; 10: Revision
 800C 00 00                                                    DW      HFORTH          ; 12: Pointer to latest word defined
 800E 7F 00                                                    DW      CH_DEL          ; 14: Backspace character
 8010 00 00                                                    DW      XUP             ; 16: Pointer to initial user area
-8012 30 86                                                    DW      XSP             ; 18: Initial data stack pointer
-8014 40 86                                                    DW      XRP             ; 20: Initial data stack pointer
+8012 30 88                                                    DW      XSP             ; 18: Initial data stack pointer
+8014 40 88                                                    DW      XRP             ; 20: Initial data stack pointer
 8016 00 00                                                    DW      XTIB            ; 22: Pointer to terminal input buffer
 8018 1F 00                                                    DW      31              ; 24: Maximum FORTH word name length
 801A 00 00                                                    DW      0               ; 26: Initial WARNING mode
-801C 20 86                                                    DW      XDP             ; 28: Initial FENCE
-801E 20 86                                                    DW      XDP             ; 30: Initial HERE
+801C 20 88                                                    DW      XDP             ; 28: Initial FENCE
+801E 20 88                                                    DW      XDP             ; 30: Initial HERE
 8020 00 00                                                    DW      XXVOC           ; 32: Pointer to initial VOC-LINK
 8022 00 00                                                    DW      DSKBF           ; 34: Initial FIRST
 8024 00 00                                                    DW      ENDBF           ; 36: Initial LIMIT
@@ -55,382 +55,382 @@
                                                       ; ------------------------------
                                                       ;       R1 = (IP)+
                                                       
-802A 1D 00 86                                         _LIT:   LDR     IP
-802D 16 10 86                                                 STA     R1.0
-8030 2E 00 86                                                 INW     IP
-8033 1D 00 86                                                 LDR     IP
-8036 16 11 86                                                 STA     R1.1
-8039 2E 00 86                                                 INW     IP
+802A 1D 00 88                                         _LIT:   LDR     IP
+802D 16 10 88                                                 STA     R1.0
+8030 2E 00 88                                                 INW     IP
+8033 1D 00 88                                                 LDR     IP
+8036 16 11 88                                                 STA     R1.1
+8039 2E 00 88                                                 INW     IP
 803C 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       IP = IP + (IP)+
                                                       
-803D 1D 00 86                                         _BRAN:  LDR     IP
-8040 16 10 86                                                 STA     R1.0
-8043 2E 00 86                                                 INW     IP
-8046 1D 00 86                                                 LDR     IP
-8049 16 11 86                                                 STA     R1.1
-804C 2F 00 86                                                 DEW     IP
-804F 15 10 86                                                 LDA     R1.0
-8052 28 00 86                                                 ADB     IP.0
-8055 15 11 86                                                 LDA     R1.1
-8058 2A 01 86                                                 ACB     IP.1
+803D 1D 00 88                                         _BRAN:  LDR     IP
+8040 16 10 88                                                 STA     R1.0
+8043 2E 00 88                                                 INW     IP
+8046 1D 00 88                                                 LDR     IP
+8049 16 11 88                                                 STA     R1.1
+804C 2F 00 88                                                 DEW     IP
+804F 15 10 88                                                 LDA     R1.0
+8052 28 00 88                                                 ADB     IP.0
+8055 15 11 88                                                 LDA     R1.1
+8058 2A 01 88                                                 ACB     IP.1
 805B 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (SP) "half function"
                                                       
-805C 1D 04 86                                         _GET1_: LDR     SP
-805F 16 10 86                                                 STA     R1.0
-8062 2E 04 86                                                 INW     SP
-8065 1D 04 86                                                 LDR     SP
-8068 16 11 86                                                 STA     R1.1
+805C 1D 04 88                                         _GET1_: LDR     SP
+805F 16 10 88                                                 STA     R1.0
+8062 2E 04 88                                                 INW     SP
+8065 1D 04 88                                                 LDR     SP
+8068 16 11 88                                                 STA     R1.1
 806B 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (SP)
                                                       
 806C 38 5C 80                                         _GET1:  JPS     _GET1_
-806F 2F 04 86                                                 DEW     SP
+806F 2F 04 88                                                 DEW     SP
 8072 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (SP)+
                                                       
 8073 38 5C 80                                         _POP1:  JPS     _GET1_
-8076 2E 04 86                                                 INW     SP
+8076 2E 04 88                                                 INW     SP
 8079 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1X = (SP)+
                                                       
-807A 1D 04 86                                         _DPOP1: LDR     SP
-807D 16 10 86                                                 STA     R1.0
-8080 2E 04 86                                                 INW     SP
-8083 1D 04 86                                                 LDR     SP
-8086 16 11 86                                                 STA     R1.1
-8089 2E 04 86                                                 INW     SP
-808C 1D 04 86                                                 LDR     SP
-808F 16 12 86                                                 STA     R1.2
-8092 2E 04 86                                                 INW     SP
-8095 1D 04 86                                                 LDR     SP
-8098 16 13 86                                                 STA     R1.3
-809B 2E 04 86                                                 INW     SP
+807A 1D 04 88                                         _DPOP1: LDR     SP
+807D 16 10 88                                                 STA     R1.0
+8080 2E 04 88                                                 INW     SP
+8083 1D 04 88                                                 LDR     SP
+8086 16 11 88                                                 STA     R1.1
+8089 2E 04 88                                                 INW     SP
+808C 1D 04 88                                                 LDR     SP
+808F 16 12 88                                                 STA     R1.2
+8092 2E 04 88                                                 INW     SP
+8095 1D 04 88                                                 LDR     SP
+8098 16 13 88                                                 STA     R1.3
+809B 2E 04 88                                                 INW     SP
 809E 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R2 = (SP) "half function"
                                                       
-809F 1D 04 86                                         _GET2_: LDR     SP
-80A2 16 14 86                                                 STA     R2.0
-80A5 2E 04 86                                                 INW     SP
-80A8 1D 04 86                                                 LDR     SP
-80AB 16 15 86                                                 STA     R2.1
+809F 1D 04 88                                         _GET2_: LDR     SP
+80A2 16 14 88                                                 STA     R2.0
+80A5 2E 04 88                                                 INW     SP
+80A8 1D 04 88                                                 LDR     SP
+80AB 16 15 88                                                 STA     R2.1
 80AE 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R2 = (SP)
                                                       
 80AF 38 9F 80                                         _GET2:  JPS     _GET2_
-80B2 2F 04 86                                                 DEW     SP
+80B2 2F 04 88                                                 DEW     SP
 80B5 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (SP)+
                                                       
 80B6 38 9F 80                                         _POP2:  JPS     _GET2_
-80B9 2E 04 86                                                 INW     SP
+80B9 2E 04 88                                                 INW     SP
 80BC 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R2X = (SP)+
                                                       
-80BD 1D 04 86                                         _DPOP2: LDR     SP
-80C0 16 14 86                                                 STA     R2.0
-80C3 2E 04 86                                                 INW     SP
-80C6 1D 04 86                                                 LDR     SP
-80C9 16 15 86                                                 STA     R2.1
-80CC 2E 04 86                                                 INW     SP
-80CF 1D 04 86                                                 LDR     SP
-80D2 16 16 86                                                 STA     R2.2
-80D5 2E 04 86                                                 INW     SP
-80D8 1D 04 86                                                 LDR     SP
-80DB 16 17 86                                                 STA     R2.3
-80DE 2E 04 86                                                 INW     SP
+80BD 1D 04 88                                         _DPOP2: LDR     SP
+80C0 16 14 88                                                 STA     R2.0
+80C3 2E 04 88                                                 INW     SP
+80C6 1D 04 88                                                 LDR     SP
+80C9 16 15 88                                                 STA     R2.1
+80CC 2E 04 88                                                 INW     SP
+80CF 1D 04 88                                                 LDR     SP
+80D2 16 16 88                                                 STA     R2.2
+80D5 2E 04 88                                                 INW     SP
+80D8 1D 04 88                                                 LDR     SP
+80DB 16 17 88                                                 STA     R2.3
+80DE 2E 04 88                                                 INW     SP
 80E1 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R3 = (SP) "half function"
                                                       
-80E2 1D 04 86                                         _GET3_: LDR     SP
-80E5 16 18 86                                                 STA     R3.0
-80E8 2E 04 86                                                 INW     SP
-80EB 1D 04 86                                                 LDR     SP
-80EE 16 19 86                                                 STA     R3.1
+80E2 1D 04 88                                         _GET3_: LDR     SP
+80E5 16 18 88                                                 STA     R3.0
+80E8 2E 04 88                                                 INW     SP
+80EB 1D 04 88                                                 LDR     SP
+80EE 16 19 88                                                 STA     R3.1
 80F1 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R3 = (SP)
                                                       
 80F2 38 E2 80                                         _GET3:  JPS     _GET3_
-80F5 2F 04 86                                                 DEW     SP
+80F5 2F 04 88                                                 DEW     SP
 80F8 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R3 = (SP)+
                                                       
 80F9 38 E2 80                                         _POP3:  JPS     _GET3_
-80FC 2E 04 86                                                 INW     SP
+80FC 2E 04 88                                                 INW     SP
 80FF 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (RP) "half function"
                                                       
-8100 1D 06 86                                         _RGET1_: LDR    RP
-8103 16 10 86                                                 STA     R1.0
-8106 2E 06 86                                                 INW     RP
-8109 1D 06 86                                                 LDR     RP
-810C 16 11 86                                                 STA     R1.1
+8100 1D 06 88                                         _RGET1_: LDR    RP
+8103 16 10 88                                                 STA     R1.0
+8106 2E 06 88                                                 INW     RP
+8109 1D 06 88                                                 LDR     RP
+810C 16 11 88                                                 STA     R1.1
 810F 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (RP)
                                                       
 8110 38 00 81                                         _RGET1: JPS     _RGET1_
-8113 2F 06 86                                                 DEW     RP
+8113 2F 06 88                                                 DEW     RP
 8116 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (RP)+
                                                       
 8117 38 00 81                                         _RPOP1: JPS     _RGET1_
-811A 2E 06 86                                                 INW     RP
+811A 2E 06 88                                                 INW     RP
 811D 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R2 = (RP) "half function"
                                                       
-811E 1D 06 86                                         _RGET2_: LDR    RP
-8121 16 14 86                                                 STA     R2.0
-8124 2E 06 86                                                 INW     RP
-8127 1D 06 86                                                 LDR     RP
-812A 16 15 86                                                 STA     R2.1
+811E 1D 06 88                                         _RGET2_: LDR    RP
+8121 16 14 88                                                 STA     R2.0
+8124 2E 06 88                                                 INW     RP
+8127 1D 06 88                                                 LDR     RP
+812A 16 15 88                                                 STA     R2.1
 812D 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R2 = (RP)
                                                       
 812E 38 1E 81                                         _RGET2: JPS     _RGET2_
-8131 2F 06 86                                                 DEW     RP
+8131 2F 06 88                                                 DEW     RP
 8134 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (RP)
                                                       
 8135 38 1E 81                                         _RPOP2: JPS     _RGET2_
-8138 2E 06 86                                                 INW     RP
+8138 2E 06 88                                                 INW     RP
 813B 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R3 = (RP) "half function"
                                                       
-813C 1D 06 86                                         _RGET3_: LDR    RP
-813F 16 18 86                                                 STA     R3.0
-8142 2E 06 86                                                 INW     RP
-8145 1D 06 86                                                 LDR     RP
-8148 16 19 86                                                 STA     R3.1
+813C 1D 06 88                                         _RGET3_: LDR    RP
+813F 16 18 88                                                 STA     R3.0
+8142 2E 06 88                                                 INW     RP
+8145 1D 06 88                                                 LDR     RP
+8148 16 19 88                                                 STA     R3.1
 814B 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R3 = (RP)
                                                       
 814C 38 3C 81                                         _RGET3: JPS     _RGET3_
-814F 2F 06 86                                                 DEW     RP
+814F 2F 06 88                                                 DEW     RP
 8152 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R3 = (RP)
                                                       
 8153 38 3C 81                                         _RPOP3: JPS     _RGET3_
-8156 2E 06 86                                                 INW     RP
+8156 2E 06 88                                                 INW     RP
 8159 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (SP) = R1 "half function"
                                                       
-815A 15 11 86                                         _PUT1_: LDA     R1.1
-815D 1E 04 86                                                 STR     SP
-8160 2F 04 86                                                 DEW     SP
-8163 15 10 86                                                 LDA     R1.0
-8166 1E 04 86                                                 STR     SP
+815A 15 11 88                                         _PUT1_: LDA     R1.1
+815D 1E 04 88                                                 STR     SP
+8160 2F 04 88                                                 DEW     SP
+8163 15 10 88                                                 LDA     R1.0
+8166 1E 04 88                                                 STR     SP
 8169 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (SP) = R1
                                                       
-816A 2E 04 86                                         _PUT1:  INW     SP
+816A 2E 04 88                                         _PUT1:  INW     SP
 816D 38 5A 81                                                 JPS     _PUT1_
 8170 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       -(SP) = R1
                                                       
-8171 2F 04 86                                         _PUSH1: DEW     SP
+8171 2F 04 88                                         _PUSH1: DEW     SP
 8174 38 5A 81                                                 JPS     _PUT1_
 8177 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (SP) = R2 "half function"
                                                       
-8178 15 15 86                                         _PUT2_: LDA     R2.1
-817B 1E 04 86                                                 STR     SP
-817E 2F 04 86                                                 DEW     SP
-8181 15 14 86                                                 LDA     R2.0
-8184 1E 04 86                                                 STR     SP
+8178 15 15 88                                         _PUT2_: LDA     R2.1
+817B 1E 04 88                                                 STR     SP
+817E 2F 04 88                                                 DEW     SP
+8181 15 14 88                                                 LDA     R2.0
+8184 1E 04 88                                                 STR     SP
 8187 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (SP) = R2
                                                       
-8188 2E 04 86                                         _PUT2:  INW     SP
+8188 2E 04 88                                         _PUT2:  INW     SP
 818B 38 78 81                                                 JPS     _PUT2_
 818E 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       -(SP) = R2
                                                       
-818F 2F 04 86                                         _PUSH2: DEW     SP
+818F 2F 04 88                                         _PUSH2: DEW     SP
 8192 38 78 81                                                 JPS     _PUT2_
 8195 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (SP) = R3 "half function"
                                                       
-8196 15 19 86                                         _PUT3_: LDA     R3.1
-8199 1E 04 86                                                 STR     SP
-819C 2F 04 86                                                 DEW     SP
-819F 15 18 86                                                 LDA     R3.0
-81A2 1E 04 86                                                 STR     SP
+8196 15 19 88                                         _PUT3_: LDA     R3.1
+8199 1E 04 88                                                 STR     SP
+819C 2F 04 88                                                 DEW     SP
+819F 15 18 88                                                 LDA     R3.0
+81A2 1E 04 88                                                 STR     SP
 81A5 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (SP) = R3
                                                       
-81A6 2E 04 86                                         _PUT3:  INW     SP
+81A6 2E 04 88                                         _PUT3:  INW     SP
 81A9 38 96 81                                                 JPS     _PUT3_
 81AC 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       -(SP) = R3
                                                       
-81AD 2F 04 86                                         _PUSH3: DEW     SP
+81AD 2F 04 88                                         _PUSH3: DEW     SP
 81B0 38 96 81                                                 JPS     _PUT3_
 81B3 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (RP) = R1 "half function"
                                                       
-81B4 15 11 86                                         _RPUT1_: LDA    R1.1
-81B7 1E 06 86                                                 STR     RP
-81BA 2F 06 86                                                 DEW     RP
-81BD 15 10 86                                                 LDA     R1.0
-81C0 1E 06 86                                                 STR     RP
+81B4 15 11 88                                         _RPUT1_: LDA    R1.1
+81B7 1E 06 88                                                 STR     RP
+81BA 2F 06 88                                                 DEW     RP
+81BD 15 10 88                                                 LDA     R1.0
+81C0 1E 06 88                                                 STR     RP
 81C3 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (RP) = R1
                                                       
-81C4 2E 06 86                                         _RPUT1: INW     RP
+81C4 2E 06 88                                         _RPUT1: INW     RP
 81C7 38 B4 81                                                 JPS     _RPUT1_
 81CA 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       -(RP) = R1
                                                       
-81CB 2F 06 86                                         _RPUSH1: DEW    RP
+81CB 2F 06 88                                         _RPUSH1: DEW    RP
 81CE 38 5A 81                                                 JPS     _PUT1_
 81D1 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (RP) = R2 "half function"
                                                       
-81D2 15 15 86                                         _RPUT2_: LDA    R2.1
-81D5 1E 06 86                                                 STR     RP
-81D8 2F 06 86                                                 DEW     RP
-81DB 15 14 86                                                 LDA     R2.0
-81DE 1E 06 86                                                 STR     RP
+81D2 15 15 88                                         _RPUT2_: LDA    R2.1
+81D5 1E 06 88                                                 STR     RP
+81D8 2F 06 88                                                 DEW     RP
+81DB 15 14 88                                                 LDA     R2.0
+81DE 1E 06 88                                                 STR     RP
 81E1 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (RP) = R2
                                                       
-81E2 2E 06 86                                         _RPUT2: INW     RP
+81E2 2E 06 88                                         _RPUT2: INW     RP
 81E5 38 D2 81                                                 JPS     _RPUT2_
 81E8 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       -(RP) = R2
                                                       
-81E9 2F 06 86                                         _RPUSH2: DEW    RP
+81E9 2F 06 88                                         _RPUSH2: DEW    RP
 81EC 38 D2 81                                                 JPS     _RPUT2_
 81EF 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (RP) = R3 "half function"
                                                       
-81F0 15 19 86                                         _RPUT3_: LDA    R3.1
-81F3 1E 06 86                                                 STR     RP
-81F6 2F 06 86                                                 DEW     RP
-81F9 15 18 86                                                 LDA     R3.0
-81FC 1E 06 86                                                 STR     RP
+81F0 15 19 88                                         _RPUT3_: LDA    R3.1
+81F3 1E 06 88                                                 STR     RP
+81F6 2F 06 88                                                 DEW     RP
+81F9 15 18 88                                                 LDA     R3.0
+81FC 1E 06 88                                                 STR     RP
 81FF 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       (RP) = R3
                                                       
-8200 2E 06 86                                         _RPUT3: INW     RP
+8200 2E 06 88                                         _RPUT3: INW     RP
 8203 38 F0 81                                                 JPS     _RPUT3_
 8206 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       -(RP) = R3
                                                       
-8207 2F 06 86                                         _RPUSH3: DEW    RP
+8207 2F 06 88                                         _RPUSH3: DEW    RP
 820A 38 F0 81                                                 JPS     _RPUT3_
 820D 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = R1 + R2
                                                       
-820E 15 14 86                                         _ADD16: LDA     R2.0
-8211 28 10 86                                                 ADB     R1.0
-8214 15 15 86                                                 LDA     R2.1
-8217 2A 11 86                                                 ACB     R1.1
+820E 15 14 88                                         _ADD16: LDA     R2.0
+8211 28 10 88                                                 ADB     R1.0
+8214 15 15 88                                                 LDA     R2.1
+8217 2A 11 88                                                 ACB     R1.1
 821A 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R1X = R1X + R2X
                                                       
-821B 15 14 86                                         _ADD32: LDA     R2.0
-821E 28 10 86                                                 ADB     R1.0
-8221 15 15 86                                                 LDA     R2.1
-8224 2A 11 86                                                 ACB     R1.1
-8227 15 16 86                                                 LDA     R2.2
-822A 2A 12 86                                                 ACB     R1.2
-822D 15 17 86                                                 LDA     R2.3
-8230 2A 13 86                                                 ACB     R1.3
+821B 15 14 88                                         _ADD32: LDA     R2.0
+821E 28 10 88                                                 ADB     R1.0
+8221 15 15 88                                                 LDA     R2.1
+8224 2A 11 88                                                 ACB     R1.1
+8227 15 16 88                                                 LDA     R2.2
+822A 2A 12 88                                                 ACB     R1.2
+822D 15 17 88                                                 LDA     R2.3
+8230 2A 13 88                                                 ACB     R1.3
 8233 39                                                       RTS
                                                       
                                                       ; ------------------------------
                                                       ;       R10 = R10 & R20
                                                       
 8234 0E 08                                            AND:    LDI     8               ; Load bit counter
-8236 16 18 86                                                 STA     R3              ; :
-8239 15 14 86                                         AND10:  LDA     R2              ; Load second operand
+8236 16 18 88                                                 STA     R3              ; :
+8239 15 14 88                                         AND10:  LDA     R2              ; Load second operand
 823C 05                                                       LSL                     ; Shift 2b7 into C
-823D 16 14 86                                                 STA     R2              ; Store shifted second operand
-8240 15 10 86                                                 LDA     R1              ; Load first operand
+823D 16 14 88                                                 STA     R2              ; Store shifted second operand
+8240 15 10 88                                                 LDA     R1              ; Load first operand
 8243 3C 4C 82                                                 BCC     AND20           ; If C is clear: Shift in a zero
                                                               ; 2b7 is set
 8246 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
@@ -438,8 +438,8 @@
                                                               ; 1b7 is clear
 824B 03                                                       CLC                     ; 1b7 is clear: Clear C
 824C 06                                               AND20:  ROL                     ; Shift C into result
-824D 16 10 86                                                 STA     R1              ; Store first operand/result
-8250 27 18 86                                                 DEB     R3              ; All bits done?
+824D 16 10 88                                                 STA     R1              ; Store first operand/result
+8250 27 18 88                                                 DEB     R3              ; All bits done?
 8253 3A 39 82                                                 BNE     AND10           ;   NO: Do one more
 8256 39                                                       RTS                     ;   YES: All done
                                                       
@@ -447,11 +447,11 @@
                                                       ;       R10 = R10 | R20
                                                       
 8257 0E 08                                            OR:     LDI     8               ; Load bit counter
-8259 16 18 86                                                 STA     R3              ; :
-825C 15 14 86                                         OR10:   LDA     R2              ; Load second operand
+8259 16 18 88                                                 STA     R3              ; :
+825C 15 14 88                                         OR10:   LDA     R2              ; Load second operand
 825F 05                                                       LSL                     ; Shift 2b7 into C
-8260 16 14 86                                                 STA     R2              ; Store shifted second operand
-8263 15 10 86                                                 LDA     R1              ; Load first operand
+8260 16 14 88                                                 STA     R2              ; Store shifted second operand
+8263 15 10 88                                                 LDA     R1              ; Load first operand
 8266 3D 6F 82                                                 BCS     OR20            ; If C is set, shift it into result
                                                               ; 2b7 is clear
 8269 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
@@ -459,8 +459,8 @@
                                                               ; 1b7 is clear
 826E 03                                                       CLC                     ; Neither bit is set: Clear C 
 826F 06                                               OR20:   ROL                     ; Shift C into result
-8270 16 10 86                                                 STA     R1              ; Store first operand/result
-8273 27 18 86                                                 DEB     R3              ; All bits done?
+8270 16 10 88                                                 STA     R1              ; Store first operand/result
+8273 27 18 88                                                 DEB     R3              ; All bits done?
 8276 3A 5C 82                                                 BNE     OR10            ;   NO: Do one more
 8279 39                                                       RTS                     ;   YES: All done
                                                       
@@ -468,11 +468,11 @@
                                                       ;       R10 = R10 ^ R20
                                                       
 827A 0E 08                                            XOR:    LDI     8               ; Load bit counter
-827C 16 18 86                                                 STA     R3              ; :
-827F 15 14 86                                         XOR10:  LDA     R2              ; Get second operand
+827C 16 18 88                                                 STA     R3              ; :
+827F 15 14 88                                         XOR10:  LDA     R2              ; Get second operand
 8282 05                                                       LSL                     ; Shift b7 into C
-8283 16 14 86                                                 STA     R2              ; Store shifted second operand
-8286 15 10 86                                                 LDA     R1              ; Load first operand
+8283 16 14 88                                                 STA     R2              ; Store shifted second operand
+8286 15 10 88                                                 LDA     R1              ; Load first operand
 8289 3D 94 82                                                 BCS     XOR20           ; C is set, check 1b7 for zero
                                                               ; 2b7 is clear
 828C 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is b7 set?
@@ -483,30 +483,30 @@
 8296 3E 9A 82                                                 BPL     XOR40           ; If 1b7 is zero, shift in C which is set
 8299 03                                               XOR30:  CLC                     ; 1b7 and 2b7 are equal, shift in a zero
 829A 06                                               XOR40:  ROL                     ; Shift whatever is in C into result
-829B 16 10 86                                                 STA     R1              ; Store first operand/result
-829E 27 18 86                                                 DEB     R3              ; All bits done?
+829B 16 10 88                                                 STA     R1              ; Store first operand/result
+829E 27 18 88                                                 DEB     R3              ; All bits done?
 82A1 3A 7F 82                                                 BNE     XOR10           ;   NO: Do one more
 82A4 39                                                       RTS                     ;   YES: All done
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = ~R1
                                                       
-82A5 15 13 86                                         _NOT32: LDA     R1.3            ; Negate MSB
+82A5 15 13 88                                         _NOT32: LDA     R1.3            ; Negate MSB
 82A8 0B                                                       NEG                     ; Two-complement negation
 82A9 10 01                                                    SBI     1               ; Adjust to bitwise not
-82AB 16 13 86                                                 STA     R1.3            ; Store negated MSB
-82AE 15 12 86                                                 LDA     R1.2            ; Negate byte2
+82AB 16 13 88                                                 STA     R1.3            ; Store negated MSB
+82AE 15 12 88                                                 LDA     R1.2            ; Negate byte2
 82B1 0B                                                       NEG                     ; Two-complement negation
 82B2 10 01                                                    SBI     1               ; Adjust to bitwise not
-82B4 16 12 86                                                 STA     R1.2            ; Store negated byte2
-82B7 15 11 86                                         _NOT16: LDA     R1.1            ; Negate byte1
+82B4 16 12 88                                                 STA     R1.2            ; Store negated byte2
+82B7 15 11 88                                         _NOT16: LDA     R1.1            ; Negate byte1
 82BA 0B                                                       NEG                     ; Two-complement negation
 82BB 10 01                                                    SBI     1               ; Adjust to bitwise not
-82BD 16 11 86                                                 STA     R1.1            ; Store negated byte1
-82C0 15 10 86                                                 LDA     R1.0            ; Negate LSB
+82BD 16 11 88                                                 STA     R1.1            ; Store negated byte1
+82C0 15 10 88                                                 LDA     R1.0            ; Negate LSB
 82C3 0B                                                       NEG                     ; Two-complement negation
 82C4 10 01                                                    SBI     1               ; Adjust to bitwise not
-82C6 16 10 86                                                 STA     R1.0            ; Store negated LSB
+82C6 16 10 88                                                 STA     R1.0            ; Store negated LSB
 82C9 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
@@ -514,9 +514,9 @@
                                                       
 82CA 38 B7 82                                         _NEG16: JPS     _NOT16          ; Bitwise NOT R1
 82CD 0E 01                                                    LDI     1               ; Add one to make it 2-complement
-82CF 28 10 86                                                 ADB     R1.0            ; :
+82CF 28 10 88                                                 ADB     R1.0            ; :
 82D2 0E 00                                                    LDI     0               ; :
-82D4 2A 11 86                                                 ACB     R1.1            ; :
+82D4 2A 11 88                                                 ACB     R1.1            ; :
 82D7 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
@@ -524,36 +524,36 @@
                                                       
 82D8 38 A5 82                                         _NEG32: JPS     _NOT32          ; Bitwise NOT R1X
 82DB 0E 01                                                    LDI     1               ; Add one to make it 2-complement
-82DD 28 10 86                                                 ADB     R1.0            ; :
+82DD 28 10 88                                                 ADB     R1.0            ; :
 82E0 0D                                                       DEC                     ; :
-82E1 2A 11 86                                                 ACB     R1.1            ; :
-82E4 2A 12 86                                                 ACB     R1.2            ; :
-82E7 2A 13 86                                                 ACB     R1.3            ; :
+82E1 2A 11 88                                                 ACB     R1.1            ; :
+82E4 2A 12 88                                                 ACB     R1.2            ; :
+82E7 2A 13 88                                                 ACB     R1.3            ; :
 82EA 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
                                                       ;       R1 <-> R2
                                                       
 82EB 38 71 81                                         _XCH16: JPS     _PUSH1          ; Temp = R1
-82EE 15 14 86                                                 LDA     R2.0            ; R1 = R2
-82F1 16 10 86                                                 STA     R1.0            ; :
-82F4 15 15 86                                                 LDA     R2.1            ; :
-82F7 16 11 86                                                 STA     R1.1            ; :
+82EE 15 14 88                                                 LDA     R2.0            ; R1 = R2
+82F1 16 10 88                                                 STA     R1.0            ; :
+82F4 15 15 88                                                 LDA     R2.1            ; :
+82F7 16 11 88                                                 STA     R1.1            ; :
 82FA 38 B6 80                                                 JPS     _POP2           ; R2 = Temp
 82FD 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (R1)
                                                       
-82FE 1D 10 86                                         _AT:    LDR     R1              ; Get LSB
-8301 16 12 86                                                 STA     R1.2            ; ... Store temp
-8304 2E 10 86                                                 INW     R1              ; Bump
-8307 1D 10 86                                                 LDR     R1              ; Get MSB
-830A 16 13 86                                                 STA     R1.3            ; ... Store temp
-830D 15 12 86                                                 LDA     R1.2            ; Get temp LSB
-8310 16 10 86                                                 STA     R1.0            ; ... Store
-8313 15 13 86                                                 LDA     R1.3            ; Get temp MSB
-8316 16 11 86                                                 STA     R1.1            ; ... Store
+82FE 1D 10 88                                         _AT:    LDR     R1              ; Get LSB
+8301 16 12 88                                                 STA     R1.2            ; ... Store temp
+8304 2E 10 88                                                 INW     R1              ; Bump
+8307 1D 10 88                                                 LDR     R1              ; Get MSB
+830A 16 13 88                                                 STA     R1.3            ; ... Store temp
+830D 15 12 88                                                 LDA     R1.2            ; Get temp LSB
+8310 16 10 88                                                 STA     R1.0            ; ... Store
+8313 15 13 88                                                 LDA     R1.3            ; Get temp MSB
+8316 16 11 88                                                 STA     R1.1            ; ... Store
 8319 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
@@ -568,41 +568,41 @@
                                                       ; ----------------------------------------------------------------------
                                                       ; INNER INTERPRETER
                                                       
-831F 2F 04 86                                         DPUSH:  DEW     SP              ; -(SP) = BC
-8322 15 13 86                                                 LDA     R1.3
-8325 1E 04 86                                                 STR     SP
-8328 2F 04 86                                                 DEW     SP
-832B 15 12 86                                                 LDA     R1.2
-832E 1E 04 86                                                 STR     SP
-8331 2F 04 86                                         PUSH:   DEW     SP              ; -(SP) = DE
-8334 15 11 86                                                 LDA     R1.1
-8337 1E 04 86                                                 STR     SP
-833A 2F 04 86                                                 DEW     SP
-833D 15 10 86                                                 LDA     R1.0
-8340 1E 04 86                                                 STR     SP
-8343 1D 00 86                                         NEXT:   LDR     IP              ; WA = (IP)+
-8346 16 02 86                                                 STA     WA.0
-8349 2E 00 86                                                 INW     IP
-834C 1D 00 86                                                 LDR     IP
-834F 16 03 86                                                 STA     WA.1
-8352 2E 00 86                                                 INW     IP
-8355 1D 02 86                                         NEXT10: LDR     WA              ; R1 = (WA)+
-8358 16 10 86                                                 STA     R1.0
-835B 2E 02 86                                                 INW     WA
-835E 1D 02 86                                                 LDR     WA
-8361 16 11 86                                                 STA     R1.1
-8364 2E 02 86                                                 INW     WA
-8367 1C 10 86                                                 JPR     R1              ; jump @(R1)
+831F 2F 04 88                                         DPUSH:  DEW     SP              ; -(SP) = BC
+8322 15 13 88                                                 LDA     R1.3
+8325 1E 04 88                                                 STR     SP
+8328 2F 04 88                                                 DEW     SP
+832B 15 12 88                                                 LDA     R1.2
+832E 1E 04 88                                                 STR     SP
+8331 2F 04 88                                         PUSH:   DEW     SP              ; -(SP) = DE
+8334 15 11 88                                                 LDA     R1.1
+8337 1E 04 88                                                 STR     SP
+833A 2F 04 88                                                 DEW     SP
+833D 15 10 88                                                 LDA     R1.0
+8340 1E 04 88                                                 STR     SP
+8343 1D 00 88                                         NEXT:   LDR     IP              ; WA = (IP)+
+8346 16 02 88                                                 STA     WA.0
+8349 2E 00 88                                                 INW     IP
+834C 1D 00 88                                                 LDR     IP
+834F 16 03 88                                                 STA     WA.1
+8352 2E 00 88                                                 INW     IP
+8355 1D 02 88                                         NEXT10: LDR     WA              ; R1 = (WA)+
+8358 16 10 88                                                 STA     R1.0
+835B 2E 02 88                                                 INW     WA
+835E 1D 02 88                                                 LDR     WA
+8361 16 11 88                                                 STA     R1.1
+8364 2E 02 88                                                 INW     WA
+8367 1C 10 88                                                 JPR     R1              ; jump @(R1)
                                                       
                                                       ; ------------------------------
                                                       ;       Push TRUE and FALSE
                                                       
-836A 2C 10 86                                         PUSHT:  CLW     R1              ; A zero
-836D 2F 10 86                                                 DEW     R1              ; Make it into a -1 i.e. TRUE flag
+836A 2C 10 88                                         PUSHT:  CLW     R1              ; A zero
+836D 2F 10 88                                                 DEW     R1              ; Make it into a -1 i.e. TRUE flag
 8370 38 71 81                                                 JPS     _PUSH1          ; Push onto dstack
 8373 14 43 83                                                 JPA     NEXT
                                                       
-8376 2C 10 86                                         PUSHF:  CLW     R1              ; A zero
+8376 2C 10 88                                         PUSHF:  CLW     R1              ; A zero
 8379 38 71 81                                                 JPS     _PUSH1          ; Push onto dstack
 837C 14 43 83                                                 JPA     NEXT
                                                       
@@ -621,12 +621,12 @@
 838D 87 45 58 45 43 55 54 C5                          HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
 8395 7F 83                                                    DW      HLIT
 8397 99 83                                            EXEC:   DW      EXEC0
-8399 1D 04 86                                         EXEC0:  LDR     SP              ; WA = (SP)+
-839C 16 02 86                                                 STA     WA.0
-839F 2E 04 86                                                 INW     SP
-83A2 1D 04 86                                                 LDR     SP
-83A5 16 03 86                                                 STA     WA.1
-83A8 2E 04 86                                                 INW     SP
+8399 1D 04 88                                         EXEC0:  LDR     SP              ; WA = (SP)+
+839C 16 02 88                                                 STA     WA.0
+839F 2E 04 88                                                 INW     SP
+83A2 1D 04 88                                                 LDR     SP
+83A5 16 03 88                                                 STA     WA.1
+83A8 2E 04 88                                                 INW     SP
 83AB 14 55 83                                                 JPA     NEXT10          ; jump @(WA)+
                                                       
 83AE 86 42 52 41 4E 43 C8                             HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
@@ -638,19 +638,19 @@
 83BF 87 30 42 52 41 4E 43 C8                          HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** 0BRANCH
 83C7 AE 83                                                    DW      HBRAN
 83C9 CB 83                                            ZBRAN:  DW      ZBRAN0
-83CB 1D 04 86                                         ZBRAN0: LDR     SP
+83CB 1D 04 88                                         ZBRAN0: LDR     SP
 83CE 11 00                                                    CPI     0               ; Low byte non-zero?
 83D0 3A E4 83                                                 BNE     ZBRA10          ; YES: Do not branch
-83D3 2E 04 86                                                 INW     SP
-83D6 1D 04 86                                                 LDR     SP
+83D3 2E 04 88                                                 INW     SP
+83D6 1D 04 88                                                 LDR     SP
 83D9 11 00                                                    CPI     0               ; High byte non-zero?
 83DB 3A E7 83                                                 BNE     ZBRA20          ; YES: Do not branch
-83DE 2E 04 86                                                 INW     SP
+83DE 2E 04 88                                                 INW     SP
 83E1 14 B9 83                                                 JPA     BRAN0           ; IP = IP + (IP); NEXT
-83E4 2E 04 86                                         ZBRA10: INW     SP
-83E7 2E 04 86                                         ZBRA20: INW     SP
-83EA 2E 00 86                                                 INW     IP              ; Just skip jump offset
-83ED 2E 00 86                                                 INW     IP
+83E4 2E 04 88                                         ZBRA10: INW     SP
+83E7 2E 04 88                                         ZBRA20: INW     SP
+83EA 2E 00 88                                                 INW     IP              ; Just skip jump offset
+83ED 2E 00 88                                                 INW     IP
 83F0 14 43 83                                                 JPA     NEXT
                                                       
 83F3 87 28 2B 4C 4F 4F 50 A9                          HXPLOO: DB      ^7 "(+LOOP" ^')'                        ; ***** (+LOOP)
@@ -662,33 +662,33 @@
 8408 38 2E 81                                                 JPS     _RGET2          ; R2 = limit
 840B 38 CB 81                                                 JPS     _RPUSH1         ; -(RP) = R1'
 840E 38 F9 80                                                 JPS     _POP3           ; R3 = (SP)+ [now popping incr]
-8411 15 19 86                                                 LDA     R3.1            ; Is increment negative?
+8411 15 19 88                                                 LDA     R3.1            ; Is increment negative?
 8414 11 00                                                    CPI     0               ; :
 8416 3E 1C 84                                                 BPL     XPLO10
                                                               ; Handle negative increment
 8419 38 EB 82                                                 JPS     _XCH16          ; R1 <-> R2
                                                               ; Compare counter to limit
-841C 15 11 86                                         XPLO10: LDA     R1.1            ; Compare MSB
-841F 19 15 86                                                 CPA     R2.1            ; :
+841C 15 11 88                                         XPLO10: LDA     R1.1            ; Compare MSB
+841F 19 15 88                                                 CPA     R2.1            ; :
 8422 3F B9 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
 8425 3B 2B 84                                                 BEQ     XPLO20          ; MSBs are equal, check LSBs
 8428 14 34 84                                                 JPA     XPLO30          ; R1 is greater, stop looping
                                                               ; MSBs are equal
-842B 15 10 86                                         XPLO20: LDA     R1.0            ; Compare LSB
-842E 19 14 86                                                 CPA     R2.0            
+842B 15 10 88                                         XPLO20: LDA     R1.0            ; Compare LSB
+842E 19 14 88                                                 CPA     R2.0            
 8431 3F B9 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
                                                               ; Limit reached, cleanup rstack and stop looping
 8434 0E 04                                            XPLO30: LDI     4               ; Drop loop counter ...
-8436 30 06 86                                                 ADW     RP              ; ... and loop limit
+8436 30 06 88                                                 ADW     RP              ; ... and loop limit
 8439 0E 02                                                    LDI     2               ; Skip branch offset
-843B 30 00 86                                                 ADW     IP              ; :
+843B 30 00 88                                                 ADW     IP              ; :
 843E 14 43 83                                                 JPA     NEXT
                                                       
 8441 86 28 4C 4F 4F 50 A9                             HXLOOP: DB      ^6 "(LOOP" ^')'                         ; ***** (LOOP)
 8448 F3 83                                                    DW      HXPLOO
 844A 4C 84                                            XLOOP:  DW      XLOOP0
-844C 2C 10 86                                         XLOOP0: CLW     R1              ; Push a one
-844F 2E 10 86                                                 INW     R1              ; :
+844C 2C 10 88                                         XLOOP0: CLW     R1              ; Push a one
+844F 2E 10 88                                                 INW     R1              ; :
 8452 38 71 81                                                 JPS     _PUSH1          ; :
 8455 14 FF 83                                                 JPA     XPLOO0          ; (+LOOP)
                                                       
@@ -713,17 +713,17 @@
 8487 89 84                                            DIGIT:  DW      DIGIT0
 8489 38 B6 80                                         DIGIT0: JPS     _POP2           ; Get base into R2.0
 848C 38 73 80                                                 JPS     _POP1           ; Get character into R1.0
-848F 15 10 86                                                 LDA     R1.0            ; Get character into A
+848F 15 10 88                                                 LDA     R1.0            ; Get character into A
 8492 10 30                                                    SBI     '0'             ; Assume '0' - '9'
 8494 3F B0 84                                                 BMI     DIGI88          ; Oops! Negative
 8497 11 0A                                                    CPI     10              ; Greater than 9?
 8499 3F 9E 84                                                 BMI     DIGI10          ; No, it is 0 - 9
                                                               ; 'A' - 'Z' case
 849C 10 07                                                    SBI     7               ; ch -= ('A' - '0') + 10
-849E 19 14 86                                         DIGI10: CPA     R2.0            ; Greater than base?
+849E 19 14 88                                         DIGI10: CPA     R2.0            ; Greater than base?
 84A1 3F A7 84                                                 BMI     DIGI77
 84A4 14 B0 84                                                 JPA     DIGI88
-84A7 16 10 86                                         DIGI77: STA     R1.0            ; Store binary value
+84A7 16 10 88                                         DIGI77: STA     R1.0            ; Store binary value
 84AA 38 71 81                                                 JPS     _PUSH1          ; Push the value
 84AD 14 6A 83                                                 JPA     PUSHT           ; Push TRUE; NEXT
 84B0 14 76 83                                         DIGI88: JPA     PUSHF           ; Push FALSE; NEXT
@@ -733,86 +733,127 @@
 84BC BE 84                                            PFIND:  DW      PFIND0
 84BE 38 73 80                                         PFIND0: JPS     _POP1           ; NFA
 84C1 38 F9 80                                                 JPS     _POP3           ; String address
-84C4 15 18 86                                         PFIN10: LDA     R3.0            ; R2 = R3 (string address)
-84C7 16 14 86                                                 STA     R2.0            ; :
-84CA 15 19 86                                                 LDA     R3.1            ; :
-84CD 16 15 86                                                 STA     R2.1            ; :
+84C4 15 18 88                                         PFIN10: LDA     R3.0            ; R2 = R3 (string address)
+84C7 16 14 88                                                 STA     R2.0            ; :
+84CA 15 19 88                                                 LDA     R3.1            ; :
+84CD 16 15 88                                                 STA     R2.1            ; :
                                                               ; Fast comparison of length bytes
-84D0 1D 10 86                                                 LDR     R1              ; Get lByte
-84D3 16 12 86                                                 STA     R1.2            ; ... Store as potential result
+84D0 1D 10 88                                                 LDR     R1              ; Get lByte
+84D3 16 12 88                                                 STA     R1.2            ; ... Store as potential result
 84D6 05                                                       LSL                     ; lByte &= 0x3F
 84D7 05                                                       LSL                     ; :
 84D8 07                                                       LSR                     ; :
 84D9 07                                                       LSR                     ; :
-84DA 16 16 86                                                 STA     R2.2            ; R2.2 is counter for string match
-84DD 21 14 86                                                 CPR     R2              ; lByte == string length?
+84DA 16 16 88                                                 STA     R2.2            ; R2.2 is counter for string match
+84DD 21 14 88                                                 CPR     R2              ; lByte == string length?
 84E0 3A FF 84                                                 BNE     PFIN25
                                                               ; Length bytes match, check names
-84E3 2E 10 86                                         PFIN20: INW     R1              ; Bump pointers
-84E6 2E 14 86                                                 INW     R2              ; :
-84E9 1D 10 86                                                 LDR     R1              ; Get char from dictionary
+84E3 2E 10 88                                         PFIN20: INW     R1              ; Bump pointers
+84E6 2E 14 88                                                 INW     R2              ; :
+84E9 1D 10 88                                                 LDR     R1              ; Get char from dictionary
 84EC 05                                                       LSL                     ; char &= 0x7F
 84ED 07                                                       LSR
-84EE 21 14 86                                                 CPR     R2              ; Is it a match with search string?
+84EE 21 14 88                                                 CPR     R2              ; Is it a match with search string?
 84F1 3A 02 85                                                 BNE     PFIN30          ; NO: Look at next header in dictionary
-84F4 27 16 86                                                 DEB     R2.2            ; Decrement character counter
+84F4 27 16 88                                                 DEB     R2.2            ; Decrement character counter
 84F7 11 00                                                    CPI     0               ; :
 84F9 3B 23 85                                                 BEQ     PFIN77          ; YES: This is the word we are looking for
 84FC 14 E3 84                                                 JPA     PFIN20          ; Match so far, try next char
                                                               ; Step to next header in dictionary
-84FF 2E 10 86                                         PFIN25: INW     R1              ; Bump NFA pointer to actual characters
-8502 2E 10 86                                         PFIN30: INW     R1              ; Bump NFA pointer
-8505 27 16 86                                                 DEB     R2.2            ; Decrement character counter
+84FF 2E 10 88                                         PFIN25: INW     R1              ; Bump NFA pointer to actual characters
+8502 2E 10 88                                         PFIN30: INW     R1              ; Bump NFA pointer
+8505 27 16 88                                                 DEB     R2.2            ; Decrement character counter
 8508 11 00                                                    CPI     0               ; End of name field?
 850A 3A 02 85                                                 BNE     PFIN30          ; NO: Step to next char
 850D 38 FE 82                                                 JPS     _AT             ; R1 = (R1)
-8510 15 11 86                                                 LDA     R1.1            ; At end of dictionary?
+8510 15 11 88                                                 LDA     R1.1            ; At end of dictionary?
 8513 11 00                                                    CPI     0               ; :
 8515 3A C4 84                                                 BNE     PFIN10          ; NO: Try this word for match
-8518 15 10 86                                                 LDA     R1.0            ; :
+8518 15 10 88                                                 LDA     R1.0            ; :
 851B 11 00                                                    CPI     0               ; :
 851D 3A C4 84                                                 BNE     PFIN10          ; NO: Try this word for match
                                                               ; Word not found, return a single FALSE
 8520 14 76 83                                         PFIN88: JPA     PUSHF           ; Done
                                                               ; Word found, return PFA, lByte, TRUE
 8523 0E 05                                            PFIN77: LDI     5               ; Bump ptr to PFA
-8525 30 10 86                                                 ADW     R1              ; :
+8525 30 10 88                                                 ADW     R1              ; :
 8528 38 71 81                                                 JPS     _PUSH1          ; Push PFA
-852B 15 12 86                                                 LDA     R1.2            ; Get stored length byte
-852E 16 10 86                                                 STA     R1.0            ; :
-8531 24 11 86                                                 CLB     R1.1            ; Clear MSB
+852B 15 12 88                                                 LDA     R1.2            ; Get stored length byte
+852E 16 10 88                                                 STA     R1.0            ; :
+8531 24 11 88                                                 CLB     R1.1            ; Clear MSB
 8534 38 71 81                                                 JPS     _PUSH1          ; Push length byte
 8537 14 6A 83                                                 JPA     PUSHT           ; Done
-                                                              
-853A 81 AB                                            HPLUS:  DB      ^1 ^'+'                                 ; ***** +
-853C 00 00                                                    DW      0
-853E 40 85                                            PLUS:   DW      PLUS0
-8540 38 B6 80                                         PLUS0:  JPS     _POP2           ; Get second operand
-8543 38 73 80                                                 JPS     _POP1           ; Get first operand
-8546 38 0E 82                                                 JPS     _ADD16          ; R1 = R1 + R2
-8549 14 31 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
                                                       
-854C 82 44 AB                                         HDPLU:  DB      ^2 "D" ^'+'                             ; ***** D+
-854F 00 00                                                    DW      0
-8551 53 85                                            DPLUS:  DW      DPLUS0
-8553 38 BD 80                                         DPLUS0: JPS     _DPOP2          ; Get second operand
-8556 38 7A 80                                                 JPS     _DPOP1          ; Get first operand
-8559 38 1B 82                                                 JPS     _ADD32          ; R1X = R1X + R2X
-855C 14 1F 83                                                 JPA     DPUSH           ; -(SP) = R1X; NEXT
+853A 87 45 4E 43 4C 4F 53 C5                          HENCL:  DB      ^7 "ENCLOS" ^'E'                        ; ***** ENCLOSE
+8542 B3 84                                                    DW      HPFIND
+8544 46 85                                            ENCL:   DW      ENCL0
+8546 38 F9 80                                         ENCL0:  JPS     _POP3           ; Get delimiter char
+8549 38 6C 80                                                 JPS     _GET1           ; Get addr of input
+854C 2C 14 88                                                 CLW     R2              ; Initialize char index
+                                                              ; Scan preceeding delimiters
+854F 1D 10 88                                         ENCL10: LDR     R1              ; Get char from input
+8552 11 00                                                    CPI     0               ; Is it <NUL>?
+8554 3B 8C 85                                                 BEQ     ENCL50          ; YES: <NUL> before first non-delimiter
+8557 19 18 88                                                 CPA     R3.0            ; Is it a delimiter?
+855A 3A 66 85                                                 BNE     ENCL20          ; NO: We have the start of next token
+855D 2E 10 88                                                 INW     R1              ; Bump to next char ...
+8560 26 14 88                                                 INB     R2.0            ; ... also increase index
+8563 14 4F 85                                                 JPA     ENCL10          ; Go back to look at next char
+                                                              ; Start of token
+8566 38 8F 81                                         ENCL20: JPS     _PUSH2          ; Push result n1 (first char of token)
+8569 1D 10 88                                         ENCL30: LDR     R1              ; Get char from input
+856C 11 00                                                    CPI     0               ; Is it <NUL>?
+856E 3B 9B 85                                                 BEQ     ENCL60          ; YES: <NUL> found
+8571 19 18 88                                                 CPA     R3.0            ; Is it a delimiter?
+8574 3B 80 85                                                 BEQ     ENCL40          ; YES: We have the end of the token
+8577 2E 10 88                                                 INW     R1              ; Bump to next char ...
+857A 26 14 88                                                 INB     R2.0            ; ... also increase index
+857D 14 69 85                                                 JPA     ENCL30          ; Go back to look at next char
+                                                              ; End of token
+8580 38 8F 81                                         ENCL40: JPS     _PUSH2          ; Push result n2 (ending delimiter)
+8583 26 14 88                                                 INB     R2.0            ; Also push n3 ...
+8586 38 8F 81                                                 JPS     _PUSH2          ; : ... (index to first non-scanned char)
+8589 14 43 83                                                 JPA     NEXT            ; Done
+                                                              ; <NUL> appears before token
+858C 26 14 88                                         ENCL50: INB     R2.0            ; Push i + 1
+858F 38 8F 81                                                 JPS     _PUSH2          ; :
+8592 27 14 88                                                 DEB     R2.0            ; Push i
+8595 38 8F 81                                                 JPS     _PUSH2          ; : ... indicating <NUL> before token
+8598 14 43 83                                                 JPA     NEXT            ; Done
+                                                              ; Token ends with a <NUL>
+859B 38 8F 81                                         ENCL60: JPS     _PUSH2          ; Push i twice to indicate ...
+859E 38 8F 81                                                 JPS     _PUSH2          ; : ... that token ends in a <NUL>
+85A1 14 43 83                                                 JPA     NEXT            ; Done
                                                       
-855F 85 4D 49 4E 55 D3                                HMINUS: DB      ^5 "MINU" ^'S'                          ; ***** MINUS
-8565 00 00                                                    DW      0
-8567 69 85                                            MINUS:  DW      MINUS0
-8569 38 73 80                                         MINUS0: JPS     _POP1           ; Get operand
-856C 38 CA 82                                                 JPS     _NEG16          ; Negate
-856F 14 31 83                                                 JPA     PUSH
+85A4 81 AB                                            HPLUS:  DB      ^1 ^'+'                                 ; ***** +
+85A6 00 00                                                    DW      0
+85A8 AA 85                                            PLUS:   DW      PLUS0
+85AA 38 B6 80                                         PLUS0:  JPS     _POP2           ; Get second operand
+85AD 38 73 80                                                 JPS     _POP1           ; Get first operand
+85B0 38 0E 82                                                 JPS     _ADD16          ; R1 = R1 + R2
+85B3 14 31 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
                                                       
-8572 86 44 4D 49 4E 55 D3                             HDMINU: DB      ^6 "DMINU" ^'S'                         ; ***** DMINUS
-8579 00 00                                                    DW      0
-857B 7D 85                                            DMINU:  DW      DMINU0
-857D 38 7A 80                                         DMINU0: JPS     _DPOP1          ; Get operand
-8580 38 D8 82                                                 JPS     _NEG32          ; Negate
-8583 14 1F 83                                                 JPA     DPUSH
+85B6 82 44 AB                                         HDPLU:  DB      ^2 "D" ^'+'                             ; ***** D+
+85B9 00 00                                                    DW      0
+85BB BD 85                                            DPLUS:  DW      DPLUS0
+85BD 38 BD 80                                         DPLUS0: JPS     _DPOP2          ; Get second operand
+85C0 38 7A 80                                                 JPS     _DPOP1          ; Get first operand
+85C3 38 1B 82                                                 JPS     _ADD32          ; R1X = R1X + R2X
+85C6 14 1F 83                                                 JPA     DPUSH           ; -(SP) = R1X; NEXT
+                                                      
+85C9 85 4D 49 4E 55 D3                                HMINUS: DB      ^5 "MINU" ^'S'                          ; ***** MINUS
+85CF 00 00                                                    DW      0
+85D1 D3 85                                            MINUS:  DW      MINUS0
+85D3 38 73 80                                         MINUS0: JPS     _POP1           ; Get operand
+85D6 38 CA 82                                                 JPS     _NEG16          ; Negate
+85D9 14 31 83                                                 JPA     PUSH
+                                                      
+85DC 86 44 4D 49 4E 55 D3                             HDMINU: DB      ^6 "DMINU" ^'S'                         ; ***** DMINUS
+85E3 00 00                                                    DW      0
+85E5 E7 85                                            DMINU:  DW      DMINU0
+85E7 38 7A 80                                         DMINU0: JPS     _DPOP1          ; Get operand
+85EA 38 D8 82                                                 JPS     _NEG32          ; Negate
+85ED 14 1F 83                                                 JPA     DPUSH
                                                       
                                                       
                                                       ; INCLUDE         coldwarm.asm
@@ -820,77 +861,77 @@
                                                       ; ----------------------------------------------------------------------
                                                       ; COLD AND WARM START ENTRY POINTS
                                                       
-8586 0E FE                                            CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
-8588 16 FF FF                                                 STA     0xFFFF          ; :
-858B 0E 30                                                    LDI     <XSP            ; Initialize FORTH SP
-858D 16 04 86                                                 STA     SP.0            ; :
-8590 0E 86                                                    LDI     >XSP            ; :
-8592 16 05 86                                                 STA     SP.1            ; :
-8595 0E A2                                                    LDI     <TEST           ; Initialize FORTH IP
-8597 16 00 86                                                 STA     IP.0            ; :
-859A 0E 85                                                    LDI     >TEST           ; :
-859C 16 01 86                                                 STA     IP.1            ; :
-859F 14 43 83                                                 JPA     NEXT            ; ... and over to FORTH VM
+85F0 0E FE                                            CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
+85F2 16 FF FF                                                 STA     0xFFFF          ; :
+85F5 0E 30                                                    LDI     <XSP            ; Initialize FORTH SP
+85F7 16 04 88                                                 STA     SP.0            ; :
+85FA 0E 88                                                    LDI     >XSP            ; :
+85FC 16 05 88                                                 STA     SP.1            ; :
+85FF 0E 0C                                                    LDI     <TEST           ; Initialize FORTH IP
+8601 16 00 88                                                 STA     IP.0            ; :
+8604 0E 86                                                    LDI     >TEST           ; :
+8606 16 01 88                                                 STA     IP.1            ; :
+8609 14 43 83                                                 JPA     NEXT            ; ... and over to FORTH VM
                                                       
-85A2 85 83 B3 85 85 83 B3 84 BC 84 85 83 77 33 1A 83  TEST:   DW      LIT STRING LIT HPFIND PFIND LIT 0x3377 _HALT
+860C 85 83 19 86 85 83 20 00 44 85 1A 83              TEST:   DW      LIT STRING LIT 32 ENCL _HALT
                                                       
-85B2 00                                               WENT:   NOP
+8618 00                                               WENT:   NOP
                                                       
-85B3 07 45 58 45 43 49 54 45                          STRING: DB      7 "EXECITE"
+8619 20 20 54 4F 4B 45 4E 00 20 20 00                 STRING: DB      32 32 "TOKEN" 0 32 32 0
                                                       
-                                                              ORG     0x8600
+                                                              ORG     0x8800
                                                       
                                                       ; INCLUDE         regs.asm
                                                       
                                                       ; ----------------------------------------------------------------------
                                                       ; THE VIRTUAL FORTH MACHINE REGISTERS
                                                       
-                                                              ORG     0x8600
+                                                              ORG     0x8800
                                                       
                                                       IP:                             ; Instruction Pointer
-8600 00                                               IP.0:   DB      0
-8601 00                                               IP.1:   DB      0
+8800 00                                               IP.0:   DB      0
+8801 00                                               IP.1:   DB      0
                                                       
                                                       WA:                             ; Word Address Register
-8602 00                                               WA.0:   DB      0
-8603 00                                               WA.1:   DB      0
+8802 00                                               WA.0:   DB      0
+8803 00                                               WA.1:   DB      0
                                                       
                                                       SP:                             ; Data stack pointer
-8604 00                                               SP.0:   DB      0
-8605 00                                               SP.1:   DB      0
+8804 00                                               SP.0:   DB      0
+8805 00                                               SP.1:   DB      0
                                                       
                                                       RP:                             ; Return stack pointer
-8606 00                                               RP.0:   DB      0
-8607 00                                               RP.1:   DB      0
+8806 00                                               RP.0:   DB      0
+8807 00                                               RP.1:   DB      0
                                                       
                                                       UP:                             ; User area pointer
-8608 00                                               UP.0:   DB      0
-8609 00                                               UP.1:   DB      0
+8808 00                                               UP.0:   DB      0
+8809 00                                               UP.1:   DB      0
                                                       
-                                                              ORG     0x8610
+                                                              ORG     0x8810
                                                       
                                                       R1:                             ; Working register R1
-8610 00                                               R1.0:   DB      0
-8611 00                                               R1.1:   DB      0
+8810 00                                               R1.0:   DB      0
+8811 00                                               R1.1:   DB      0
                                                       R1H:
-8612 00                                               R1.2:   DB      0
-8613 00                                               R1.3:   DB      0
+8812 00                                               R1.2:   DB      0
+8813 00                                               R1.3:   DB      0
                                                       
                                                       R2:                             ; Working register R2
-8614 00                                               R2.0:   DB      0
-8615 00                                               R2.1:   DB      0
+8814 00                                               R2.0:   DB      0
+8815 00                                               R2.1:   DB      0
                                                       R2H:
-8616 00                                               R2.2:   DB      0
-8617 00                                               R2.3:   DB      0
+8816 00                                               R2.2:   DB      0
+8817 00                                               R2.3:   DB      0
                                                       
                                                       R3:                             ; Working register R3
-8618 00                                               R3.0:   DB      0
-8619 00                                               R3.1:   DB      0
+8818 00                                               R3.0:   DB      0
+8819 00                                               R3.1:   DB      0
                                                       R3H:
-861A 00                                               R3.2:   DB      0
-861B 00                                               R3.3:   DB      0
+881A 00                                               R3.2:   DB      0
+881B 00                                               R3.3:   DB      0
                                                       
-                                                              ORG     0x8620
-8620 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XDP:    DW      0 0 0 0 0 0 0 0    
-8630 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XSP:    DW      0 0 0 0 0 0 0 0
-8640 00 00                                            XRP:    DW      0
+                                                              ORG     0x8820
+8820 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XDP:    DW      0 0 0 0 0 0 0 0    
+8830 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  XSP:    DW      0 0 0 0 0 0 0 0
+8840 00 00                                            XRP:    DW      0
