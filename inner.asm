@@ -36,6 +36,5 @@ PUSHT:  CLW     R1              ; A zero
         JPA     NEXT
 
 PUSHF:  CLW     R1              ; A zero
-        DEW     R1              ; Make it into a -1 i.e. TRUE flag
         JPS     _PUSH1          ; Push onto dstack
         JPA     NEXT
