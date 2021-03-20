@@ -492,3 +492,23 @@ _XCH16: JPS     _PUSH1          ; Temp = R1
         JPS     _POP2           ; R2 = Temp
         RTS                     ; Done
 
+; ------------------------------
+;       R1 = (R1)
+
+_AT:    LDR     R1              ; Get LSB
+        STA     R1.2            ; ... Store temp
+        INW     R1              ; Bump
+        LDR     R1              ; Get MSB
+        STA     R1.3            ; ... Store temp
+        LDA     R1.2            ; Get temp LSB
+        STA     R1.0            ; ... Store
+        LDA     R1.3            ; Get temp MSB
+        STA     R1.1            ; ... Store
+        RTS                     ; Done
+
+; ------------------------------
+;       "HALT"
+
+_HALT:  DW      _HALT0
+_HALT0: JPA     _HALT0
+

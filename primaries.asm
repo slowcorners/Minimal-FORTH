@@ -46,12 +46,12 @@ ZBRA20: INW     SP
 HXPLOO: DB      ^7 "(+LOOP" ^')'                        ; ***** (+LOOP)
         DW      HZBRAN
 XPLOO:  DW      XPLOO0
-XPLOO0: JPS     _GET2           ; R2 = increment
-        JPS     _RPOP1          ; R1 = (RP)+ [borrow]
+XPLOO0: JPS     _GET2           ; R2 = (SP) [only copying increment]
+        JPS     _RPOP1          ; R1 = (RP)+
         JPS     _ADD16          ; R1 = counter'
         JPS     _RGET2          ; R2 = limit
-        JPS     _RPUSH1         ; -(RP) = R1' [restore]
-        JPS     _RPOP3          ; R3 = Increment [pop!]
+        JPS     _RPUSH1         ; -(RP) = R1'
+        JPS     _POP3           ; R3 = (SP)+ [now popping incr]
         LDA     R3.1            ; Is increment negative?
         CPI     0               ; :
         BPL     XPLO10
@@ -60,19 +60,18 @@ XPLOO0: JPS     _GET2           ; R2 = increment
         ; Compare counter to limit
 XPLO10: LDA     R1.1            ; Compare MSB
         CPA     R2.1            ; :
-        BCS     XPLO20          ; R1 is greater, stop looping here
         BMI     BRAN0           ; R2 is greater, continue looping
+        BEQ     XPLO20          ; MSBs are equal, check LSBs
+        JPA     XPLO30          ; R1 is greater, stop looping
         ; MSBs are equal
-        LDA     R1.0            ; Compare LSB
+XPLO20: LDA     R1.0            ; Compare LSB
         CPA     R2.0            
         BMI     BRAN0           ; R2 is greater, continue looping
-        ; Limit reached, cleanup and stop looping
-XPLO20: INW     RP              ; Drop loop counter
-        INW     RP              ; :
-        INW     RP              ; Drop loop limit
-        INW     RP              ; :
-        INW     IP              ; Skip branch offset
-        INW     IP              ; :
+        ; Limit reached, cleanup rstack and stop looping
+XPLO30: LDI     4               ; Drop loop counter ...
+        ADW     RP              ; ... and loop limit
+        LDI     2               ; Skip branch offset
+        ADW     IP              ; :
         JPA     NEXT
 
 HXLOOP: DB      ^6 "(LOOP" ^')'                         ; ***** (LOOP)
@@ -119,6 +118,62 @@ DIGI77: STA     R1.0            ; Store binary value
         JPA     PUSHT           ; Push TRUE; NEXT
 DIGI88: JPA     PUSHF           ; Push FALSE; NEXT
 
+HPFIND: DB      ^6 "(FIND" ^')'                         ; ***** (FIND)
+        DW      HDIGIT
+PFIND:  DW      PFIND0
+PFIND0: JPS     _POP1           ; NFA
+        JPS     _POP3           ; String address
+PFIN10: LDA     R3.0            ; R2 = R3 (string address)
+        STA     R2.0            ; :
+        LDA     R3.1            ; :
+        STA     R2.1            ; :
+        ; Fast comparison of length bytes
+        LDR     R1              ; Get lByte
+        STA     R1.2            ; ... Store as potential result
+        LSL                     ; lByte &= 0x3F
+        LSL                     ; :
+        LSR                     ; :
+        LSR                     ; :
+        STA     R2.2            ; R2.2 is counter for string match
+        CPR     R2              ; lByte == string length?
+        BNE     PFIN25
+        ; Length bytes match, check names
+PFIN20: INW     R1              ; Bump pointers
+        INW     R2              ; :
+        LDR     R1              ; Get char from dictionary
+        LSL                     ; char &= 0x7F
+        LSR
+        CPR     R2              ; Is it a match with search string?
+        BNE     PFIN30          ; NO: Look at next header in dictionary
+        DEB     R2.2            ; Decrement character counter
+        CPI     0               ; :
+        BEQ     PFIN77          ; YES: This is the word we are looking for
+        JPA     PFIN20          ; Match so far, try next char
+        ; Step to next header in dictionary
+PFIN25: INW     R1              ; Bump NFA pointer to actual characters
+PFIN30: INW     R1              ; Bump NFA pointer
+        DEB     R2.2            ; Decrement character counter
+        CPI     0               ; End of name field?
+        BNE     PFIN30          ; NO: Step to next char
+        JPS     _AT             ; R1 = (R1)
+        LDA     R1.1            ; At end of dictionary?
+        CPI     0               ; :
+        BNE     PFIN10          ; NO: Try this word for match
+        LDA     R1.0            ; :
+        CPI     0               ; :
+        BNE     PFIN10          ; NO: Try this word for match
+        ; Word not found, return a single FALSE
+PFIN88: JPA     PUSHF           ; Done
+        ; Word found, return PFA, lByte, TRUE
+PFIN77: LDI     5               ; Bump ptr to PFA
+        ADW     R1              ; :
+        JPS     _PUSH1          ; Push PFA
+        LDA     R1.2            ; Get stored length byte
+        STA     R1.0            ; :
+        CLB     R1.1            ; Clear MSB
+        JPS     _PUSH1          ; Push length byte
+        JPA     PUSHT           ; Done
+        
 HPLUS:  DB      ^1 ^'+'                                 ; ***** +
         DW      0
 PLUS:   DW      PLUS0
