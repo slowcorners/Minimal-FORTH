@@ -118,11 +118,6 @@ def findSym(name, offsFlag, nsb):
             symValue = symtab[name][1] - loco
         else:
             symValue = symtab[name][1]
-        if nsb:
-            if nsb == 'LSB':
-                symValue = symValue & 0xFF
-            else:
-                symValue = symValue >> 8
     else:
         symtab[name].append((loco, offsFlag, nsb))
         symValue = None

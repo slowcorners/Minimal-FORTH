@@ -395,69 +395,69 @@ _ST16:  LDA     R1.0
         RTS
 
 ; ------------------------------
-;       R10 = R10 & R20
+;       R1.0 = R1.0 & R2.0
 
-AND8:   LDI     8               ; Load bit counter
-        STA     R3              ; :
-AND10:  LDA     R2              ; Load second operand
+_AND8:  LDI     8               ; Load bit counter
+        STA     BC              ; :
+_AND81: LDA     R2.0            ; Load second operand
         LSL                     ; Shift 2b7 into C
-        STA     R2              ; Store shifted second operand
-        LDA     R1              ; Load first operand
-        BCC     AND20           ; If C is clear: Shift in a zero
+        STA     R2.0            ; Store shifted second operand
+        LDA     R1.0            ; Load first operand
+        BCC     _AND82          ; If C is clear: Shift in a zero
         ; 2b7 is set
         CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
-        BMI     AND20           ; N is set: 1b7 is set
+        BMI     _AND82           ; N is set: 1b7 is set
         ; 1b7 is clear
         CLC                     ; 1b7 is clear: Clear C
-AND20:  ROL                     ; Shift C into result
-        STA     R1              ; Store first operand/result
-        DEB     R3              ; All bits done?
-        BNE     AND10           ;   NO: Do one more
+_AND82: ROL                     ; Shift C into result
+        STA     R1.0            ; Store first operand/result
+        DEB     BC              ; All bits done?
+        BNE     _AND81          ;   NO: Do one more
         RTS                     ;   YES: All done
 
 ; ------------------------------
-;       R10 = R10 | R20
+;       R1.0 = R1.0 | R2.0
 
-OR8:    LDI     8               ; Load bit counter
-        STA     R3              ; :
-OR10:   LDA     R2              ; Load second operand
+_OR8:   LDI     8               ; Load bit counter
+        STA     BC              ; :
+_OR810: LDA     R2.0            ; Load second operand
         LSL                     ; Shift 2b7 into C
-        STA     R2              ; Store shifted second operand
-        LDA     R1              ; Load first operand
-        BCS     OR20            ; If C is set, shift it into result
+        STA     R2.0            ; Store shifted second operand
+        LDA     R1.0            ; Load first operand
+        BCS     _OR820          ; If C is set, shift it into result
         ; 2b7 is clear
         CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
-        BMI     OR20            ; N is clear: 1b7 is clear
+        BMI     _OR820          ; N is clear: 1b7 is clear
         ; 1b7 is clear
         CLC                     ; Neither bit is set: Clear C 
-OR20:   ROL                     ; Shift C into result
-        STA     R1              ; Store first operand/result
-        DEB     R3              ; All bits done?
-        BNE     OR10            ;   NO: Do one more
+_OR820: ROL                     ; Shift C into result
+        STA     R1.0            ; Store first operand/result
+        DEB     BC              ; All bits done?
+        BNE     _OR810          ;   NO: Do one more
         RTS                     ;   YES: All done
 
 ; ------------------------------
-;       R10 = R10 ^ R20
+;       R1.0 = R1.0 ^ R2.0
 
-XOR8:   LDI     8               ; Load bit counter
-        STA     R3              ; :
-XOR10:  LDA     R2              ; Get second operand
+_XOR8:  LDI     8               ; Load bit counter
+        STA     BC              ; :
+_XOR81: LDA     R2.0            ; Get second operand
         LSL                     ; Shift b7 into C
-        STA     R2              ; Store shifted second operand
-        LDA     R1              ; Load first operand
-        BCS     XOR20           ; C is set, check 1b7 for zero
+        STA     R2.0            ; Store shifted second operand
+        LDA     R1.0            ; Load first operand
+        BCS     _XOR82          ; C is set, check 1b7 for zero
         ; 2b7 is clear
         CPI     0               ; Is first operand < 0, i.e. is b7 set?
-        BMI     XOR40           ; 1b7 is set and 2b7 is clear, shift in C which is set
-        JPA     XOR30           ; 1b7 and 2b7 are both zero, clear C and shift in 
+        BMI     _XOR84          ; 1b7 is set and 2b7 is clear, shift in C which is set
+        JPA     _XOR83          ; 1b7 and 2b7 are both zero, clear C and shift in 
         ; 2b7 is set, check 1b7 for zero
-XOR20:  CPI     0
-        BPL     XOR40           ; If 1b7 is zero, shift in C which is set
-XOR30:  CLC                     ; 1b7 and 2b7 are equal, shift in a zero
-XOR40:  ROL                     ; Shift whatever is in C into result
-        STA     R1              ; Store first operand/result
-        DEB     R3              ; All bits done?
-        BNE     XOR10           ;   NO: Do one more
+_XOR82: CPI     0
+        BPL     _XOR84          ; If 1b7 is zero, shift in C which is set
+_XOR83: CLC                     ; 1b7 and 2b7 are equal, shift in a zero
+_XOR84: ROL                     ; Shift whatever is in C into result
+        STA     R1.0            ; Store first operand/result
+        DEB     BC              ; All bits done?
+        BNE     _XOR81          ;   NO: Do one more
         RTS                     ;   YES: All done
 
 ; ------------------------------
@@ -558,3 +558,98 @@ _USER:  LDA     UP.0            ; R1 = UP
         ADW     R1              ; Compute addr
         RTS                     ; Done
 
+; ------------------------------
+;       _SWAP8
+; Swaps R1.1 <-> R1.0
+;       R2.1 <-> R2.0
+
+_SWAP8: LDA     R1.0
+        STA     TMP
+        LDA     R1.1
+        STA     R1.0
+        LDA     TMP
+        STA     R1.1
+        LDA     R2.0
+        STA     TMP
+        LDA     R2.1
+        STA     R2.0
+        LDA     TMP
+        STA     R2.1
+        RTS
+
+; ------------------------------
+;       R1 = R1 & R2
+
+_AND16: JPS     _AND8
+        JPS     _SWAP8
+        JPS     _AND8
+        JPS     _SWAP8
+        RTS
+
+; ------------------------------
+;       R1 = R1 | R2
+
+_OR16:  JPS     _OR8
+        JPS     _SWAP8
+        JPS     _OR8
+        JPS     _SWAP8
+        RTS
+
+; ------------------------------
+;       R1 = R1 ^ R2
+
+_XOR16: JPS     _XOR8
+        JPS     _SWAP8
+        JPS     _XOR8
+        JPS     _SWAP8
+        RTS
+
+; ------------------------------
+;       R1X = R1X * R2X
+
+_UMULT: LDI     0               ; R1H = 0
+        STA     R1.2
+        STA     R1.3
+        STA     R2.2            ; R2H = 0
+        STA     R2.3
+        STA     R3.2            ; R3H = 0
+        STA     R3.3
+
+        LDA     R1.0            ; R3L = R1L
+        STA     R3.0
+        LDA     R1.1
+        STA     R3.1
+
+        LDI     0               ; R1L = 0
+        STA     R1.0
+        STA     R1.1
+
+        LDI     16              ; Set bit counter
+        STA     BC
+
+_UMU10: LDA     R3.1            ; R3L = R3L >> 1
+        LSR
+        STA     R3.1
+        LDA     R3.0
+        ROR
+        STA     R3.0
+        BCC     _UMU20
+
+        JPS     _ADD32          ; R1X = R1X + R2X
+
+_UMU20: LDA     R2.0            ; R2X = R2X << 1
+        LSL
+        STA     R2.0
+        LDA     R2.1
+        ROL
+        STA     R2.1
+        LDA     R2.2
+        ROL
+        STA     R2.2
+        LDA     R2.3
+        ROL
+        STA     R2.3
+
+        DEB     BC
+        BNE     _UMU10
+        RTS

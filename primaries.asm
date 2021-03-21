@@ -490,3 +490,36 @@ TOGGL0: JPS     _POP2           ; R2 = bit mask
         JPS     _XOR16          ; R1 = R1 ^ R2
         JPS     _ST16           ; (R3) = R1
         JPA     NEXT            ; Done
+
+HAT:    DB      ^1 ^'@'                                 ; ***** @
+        DW      HTOGGL
+AT:     DW      AT0
+AT0:    JPS     _POP3           ; R3 = addr
+        JPS     _LD16           ; R1 = (R3)
+        JPA     PUSH            ; -(SP) = R1; NEXT
+
+HCAT:   DB      ^2 "C" ^'@'                             ; ***** C@
+        DW      HAT
+CAT:    DW      CAT0
+CAT0:   CLW     R1              ; R1 = 0
+        JPS     _POP3           ; R3 = addr
+        LDR     R3              ; A = (R3)
+        STA     R1.0            ; R1 = A
+        JPA     PUSH            ; -(SP) = R1; NEXT
+
+HSTORE: DB      ^1 ^'!'                                 ; ***** !
+        DW      HCAT
+STORE:  DW      STORE0
+STORE0: JPS     _POP3           ; R3 = addr
+        JPS     _POP1           ; R1 = data
+        JPS     _ST16           ; (R3) = R1
+        JPA     NEXT            ; Done
+
+HCSTOR: DB      ^2 "C" ^'!'                             ; ***** C!
+        DW      HSTORE
+CSTOR:  DW      CSTOR0
+CSTOR0: JPS     _POP3           ; R3 = addr
+        JPS     _POP1           ; R1 = data
+        LDA     R1.0            ; A = R1.0
+        STR     R3              ; (R3) = A
+        JPA     NEXT            ; Done

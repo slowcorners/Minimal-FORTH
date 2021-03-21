@@ -1,12 +1,6 @@
 ; ----------------------------------------------------------------------
 ; INNER INTERPRETER
 
-DPUSH:  DEW     SP              ; -(SP) = R1X
-        LDA     R1.3
-        STR     SP
-        DEW     SP
-        LDA     R1.2
-        STR     SP
 PUSH:   DEW     SP              ; -(SP) = R1
         LDA     R1.1
         STR     SP
@@ -32,9 +26,25 @@ NEXT10: LDR     WA              ; R1 = (WA)+
 
 PUSHT:  CLW     R1              ; A zero
         DEW     R1              ; Make it into a -1 i.e. TRUE flag
-        JPS     _PUSH1          ; Push onto dstack
-        JPA     NEXT
+        JPA     PUSH
 
 PUSHF:  CLW     R1              ; A zero
-        JPS     _PUSH1          ; Push onto dstack
+        JPA     PUSH
+
+; ------------------------------
+;       Push R1X, MSB as TOS
+
+DPUSH:
+        DEW     SP              ; -(SP) = R1X
+        LDA     R1.1
+        STR     SP
+        DEW     SP
+        LDA     R1.0
+        STR     SP
+        DEW     SP
+        LDA     R1.3
+        STR     SP
+        DEW     SP
+        LDA     R1.2
+        STR     SP
         JPA     NEXT

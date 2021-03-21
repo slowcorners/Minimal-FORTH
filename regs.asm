@@ -1,7 +1,7 @@
 ; ----------------------------------------------------------------------
 ; THE VIRTUAL FORTH MACHINE REGISTERS
 
-        ORG     0x8800
+        ORG     0x8900
 
 IP:                             ; Instruction Pointer
 IP.0:   DB      0
@@ -23,7 +23,7 @@ UP:                             ; User area pointer
 UP.0:   DB      0
 UP.1:   DB      0
 
-        ORG     0x8810
+        ORG     0x8910
 
 R1:                             ; Working register R1
 R1.0:   DB      0
@@ -45,3 +45,6 @@ R3.1:   DB      0
 R3H:
 R3.2:   DB      0
 R3.3:   DB      0
+
+BC:     DB      0               ; "Hidden" registers
+TMP:    DB      0               ; (used by _AND8 _OR8 _XOR8)
