@@ -15,17 +15,17 @@
                                                       
                                                       ; INCLUDE         defs.asm
                                                       
+                                                      CH_LF   EQU     10
                                                       CH_DEL  EQU     127
-                                                      
                                                       
                                                       ; INCLUDE         boot-table.asm
                                                       
                                                       ; ----------------------------------------------------------------------
                                                       ; BOOT TABLE
                                                       
-8000 14 F0 85                                         ORIGIN: JPA     CENT            ;  0: COLD start
+8000 14 A9 88                                         ORIGIN: JPA     CENT            ;  0: COLD start
 8003 00                                                       NOP
-8004 14 18 86                                                 JPA     WENT            ;  4: WARM start
+8004 14 D1 88                                                 JPA     WENT            ;  4: WARM start
 8007 00                                                       NOP
 8008 00 00                                                    DW      0               ;  8: Processor type in radix 36
 800A 00 00                                                    DW      0               ; 10: Revision
@@ -423,144 +423,190 @@
 8233 39                                                       RTS
                                                       
                                                       ; ------------------------------
+                                                      ;       R1 = (R3)
+                                                      
+8234 1D 18 88                                         _LD16:  LDR     R3
+8237 16 10 88                                                 STA     R1.0
+823A 2E 18 88                                                 INW     R3
+823D 1D 18 88                                                 LDR     R3
+8240 16 11 88                                                 STA     R1.1
+8243 2F 18 88                                                 DEW     R3
+8246 39                                                       RTS
+                                                      
+                                                      ; ------------------------------
+                                                      ;       (R3) = R1
+                                                      
+8247 15 10 88                                         _ST16:  LDA     R1.0
+824A 1E 18 88                                                 STR     R3
+824D 2E 18 88                                                 INW     R3
+8250 15 11 88                                                 LDA     R1.1
+8253 1E 18 88                                                 STR     R3
+8256 2F 18 88                                                 DEW     R3
+8259 39                                                       RTS
+                                                      
+                                                      ; ------------------------------
                                                       ;       R10 = R10 & R20
                                                       
-8234 0E 08                                            AND:    LDI     8               ; Load bit counter
-8236 16 18 88                                                 STA     R3              ; :
-8239 15 14 88                                         AND10:  LDA     R2              ; Load second operand
-823C 05                                                       LSL                     ; Shift 2b7 into C
-823D 16 14 88                                                 STA     R2              ; Store shifted second operand
-8240 15 10 88                                                 LDA     R1              ; Load first operand
-8243 3C 4C 82                                                 BCC     AND20           ; If C is clear: Shift in a zero
+825A 0E 08                                            AND8:   LDI     8               ; Load bit counter
+825C 16 18 88                                                 STA     R3              ; :
+825F 15 14 88                                         AND10:  LDA     R2              ; Load second operand
+8262 05                                                       LSL                     ; Shift 2b7 into C
+8263 16 14 88                                                 STA     R2              ; Store shifted second operand
+8266 15 10 88                                                 LDA     R1              ; Load first operand
+8269 3C 72 82                                                 BCC     AND20           ; If C is clear: Shift in a zero
                                                               ; 2b7 is set
-8246 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
-8248 3F 4C 82                                                 BMI     AND20           ; N is set: 1b7 is set
+826C 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
+826E 3F 72 82                                                 BMI     AND20           ; N is set: 1b7 is set
                                                               ; 1b7 is clear
-824B 03                                                       CLC                     ; 1b7 is clear: Clear C
-824C 06                                               AND20:  ROL                     ; Shift C into result
-824D 16 10 88                                                 STA     R1              ; Store first operand/result
-8250 27 18 88                                                 DEB     R3              ; All bits done?
-8253 3A 39 82                                                 BNE     AND10           ;   NO: Do one more
-8256 39                                                       RTS                     ;   YES: All done
+8271 03                                                       CLC                     ; 1b7 is clear: Clear C
+8272 06                                               AND20:  ROL                     ; Shift C into result
+8273 16 10 88                                                 STA     R1              ; Store first operand/result
+8276 27 18 88                                                 DEB     R3              ; All bits done?
+8279 3A 5F 82                                                 BNE     AND10           ;   NO: Do one more
+827C 39                                                       RTS                     ;   YES: All done
                                                       
                                                       ; ------------------------------
                                                       ;       R10 = R10 | R20
                                                       
-8257 0E 08                                            OR:     LDI     8               ; Load bit counter
-8259 16 18 88                                                 STA     R3              ; :
-825C 15 14 88                                         OR10:   LDA     R2              ; Load second operand
-825F 05                                                       LSL                     ; Shift 2b7 into C
-8260 16 14 88                                                 STA     R2              ; Store shifted second operand
-8263 15 10 88                                                 LDA     R1              ; Load first operand
-8266 3D 6F 82                                                 BCS     OR20            ; If C is set, shift it into result
+827D 0E 08                                            OR8:    LDI     8               ; Load bit counter
+827F 16 18 88                                                 STA     R3              ; :
+8282 15 14 88                                         OR10:   LDA     R2              ; Load second operand
+8285 05                                                       LSL                     ; Shift 2b7 into C
+8286 16 14 88                                                 STA     R2              ; Store shifted second operand
+8289 15 10 88                                                 LDA     R1              ; Load first operand
+828C 3D 95 82                                                 BCS     OR20            ; If C is set, shift it into result
                                                               ; 2b7 is clear
-8269 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
-826B 3F 6F 82                                                 BMI     OR20            ; N is clear: 1b7 is clear
+828F 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is 1b7 set?
+8291 3F 95 82                                                 BMI     OR20            ; N is clear: 1b7 is clear
                                                               ; 1b7 is clear
-826E 03                                                       CLC                     ; Neither bit is set: Clear C 
-826F 06                                               OR20:   ROL                     ; Shift C into result
-8270 16 10 88                                                 STA     R1              ; Store first operand/result
-8273 27 18 88                                                 DEB     R3              ; All bits done?
-8276 3A 5C 82                                                 BNE     OR10            ;   NO: Do one more
-8279 39                                                       RTS                     ;   YES: All done
+8294 03                                                       CLC                     ; Neither bit is set: Clear C 
+8295 06                                               OR20:   ROL                     ; Shift C into result
+8296 16 10 88                                                 STA     R1              ; Store first operand/result
+8299 27 18 88                                                 DEB     R3              ; All bits done?
+829C 3A 82 82                                                 BNE     OR10            ;   NO: Do one more
+829F 39                                                       RTS                     ;   YES: All done
                                                       
                                                       ; ------------------------------
                                                       ;       R10 = R10 ^ R20
                                                       
-827A 0E 08                                            XOR:    LDI     8               ; Load bit counter
-827C 16 18 88                                                 STA     R3              ; :
-827F 15 14 88                                         XOR10:  LDA     R2              ; Get second operand
-8282 05                                                       LSL                     ; Shift b7 into C
-8283 16 14 88                                                 STA     R2              ; Store shifted second operand
-8286 15 10 88                                                 LDA     R1              ; Load first operand
-8289 3D 94 82                                                 BCS     XOR20           ; C is set, check 1b7 for zero
+82A0 0E 08                                            XOR8:   LDI     8               ; Load bit counter
+82A2 16 18 88                                                 STA     R3              ; :
+82A5 15 14 88                                         XOR10:  LDA     R2              ; Get second operand
+82A8 05                                                       LSL                     ; Shift b7 into C
+82A9 16 14 88                                                 STA     R2              ; Store shifted second operand
+82AC 15 10 88                                                 LDA     R1              ; Load first operand
+82AF 3D BA 82                                                 BCS     XOR20           ; C is set, check 1b7 for zero
                                                               ; 2b7 is clear
-828C 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is b7 set?
-828E 3F 9A 82                                                 BMI     XOR40           ; 1b7 is set and 2b7 is clear, shift in C which is set
-8291 14 99 82                                                 JPA     XOR30           ; 1b7 and 2b7 are both zero, clear C and shift in 
+82B2 11 00                                                    CPI     0               ; Is first operand < 0, i.e. is b7 set?
+82B4 3F C0 82                                                 BMI     XOR40           ; 1b7 is set and 2b7 is clear, shift in C which is set
+82B7 14 BF 82                                                 JPA     XOR30           ; 1b7 and 2b7 are both zero, clear C and shift in 
                                                               ; 2b7 is set, check 1b7 for zero
-8294 11 00                                            XOR20:  CPI     0
-8296 3E 9A 82                                                 BPL     XOR40           ; If 1b7 is zero, shift in C which is set
-8299 03                                               XOR30:  CLC                     ; 1b7 and 2b7 are equal, shift in a zero
-829A 06                                               XOR40:  ROL                     ; Shift whatever is in C into result
-829B 16 10 88                                                 STA     R1              ; Store first operand/result
-829E 27 18 88                                                 DEB     R3              ; All bits done?
-82A1 3A 7F 82                                                 BNE     XOR10           ;   NO: Do one more
-82A4 39                                                       RTS                     ;   YES: All done
+82BA 11 00                                            XOR20:  CPI     0
+82BC 3E C0 82                                                 BPL     XOR40           ; If 1b7 is zero, shift in C which is set
+82BF 03                                               XOR30:  CLC                     ; 1b7 and 2b7 are equal, shift in a zero
+82C0 06                                               XOR40:  ROL                     ; Shift whatever is in C into result
+82C1 16 10 88                                                 STA     R1              ; Store first operand/result
+82C4 27 18 88                                                 DEB     R3              ; All bits done?
+82C7 3A A5 82                                                 BNE     XOR10           ;   NO: Do one more
+82CA 39                                                       RTS                     ;   YES: All done
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = ~R1
                                                       
-82A5 15 13 88                                         _NOT32: LDA     R1.3            ; Negate MSB
-82A8 0B                                                       NEG                     ; Two-complement negation
-82A9 10 01                                                    SBI     1               ; Adjust to bitwise not
-82AB 16 13 88                                                 STA     R1.3            ; Store negated MSB
-82AE 15 12 88                                                 LDA     R1.2            ; Negate byte2
-82B1 0B                                                       NEG                     ; Two-complement negation
-82B2 10 01                                                    SBI     1               ; Adjust to bitwise not
-82B4 16 12 88                                                 STA     R1.2            ; Store negated byte2
-82B7 15 11 88                                         _NOT16: LDA     R1.1            ; Negate byte1
-82BA 0B                                                       NEG                     ; Two-complement negation
-82BB 10 01                                                    SBI     1               ; Adjust to bitwise not
-82BD 16 11 88                                                 STA     R1.1            ; Store negated byte1
-82C0 15 10 88                                                 LDA     R1.0            ; Negate LSB
-82C3 0B                                                       NEG                     ; Two-complement negation
-82C4 10 01                                                    SBI     1               ; Adjust to bitwise not
-82C6 16 10 88                                                 STA     R1.0            ; Store negated LSB
-82C9 39                                                       RTS                     ; Done
+82CB 15 13 88                                         _NOT32: LDA     R1.3            ; Negate MSB
+82CE 0B                                                       NEG                     ; Two-complement negation
+82CF 10 01                                                    SBI     1               ; Adjust to bitwise not
+82D1 16 13 88                                                 STA     R1.3            ; Store negated MSB
+82D4 15 12 88                                                 LDA     R1.2            ; Negate byte2
+82D7 0B                                                       NEG                     ; Two-complement negation
+82D8 10 01                                                    SBI     1               ; Adjust to bitwise not
+82DA 16 12 88                                                 STA     R1.2            ; Store negated byte2
+82DD 15 11 88                                         _NOT16: LDA     R1.1            ; Negate byte1
+82E0 0B                                                       NEG                     ; Two-complement negation
+82E1 10 01                                                    SBI     1               ; Adjust to bitwise not
+82E3 16 11 88                                                 STA     R1.1            ; Store negated byte1
+82E6 15 10 88                                                 LDA     R1.0            ; Negate LSB
+82E9 0B                                                       NEG                     ; Two-complement negation
+82EA 10 01                                                    SBI     1               ; Adjust to bitwise not
+82EC 16 10 88                                                 STA     R1.0            ; Store negated LSB
+82EF 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = -R1
                                                       
-82CA 38 B7 82                                         _NEG16: JPS     _NOT16          ; Bitwise NOT R1
-82CD 0E 01                                                    LDI     1               ; Add one to make it 2-complement
-82CF 28 10 88                                                 ADB     R1.0            ; :
-82D2 0E 00                                                    LDI     0               ; :
-82D4 2A 11 88                                                 ACB     R1.1            ; :
-82D7 39                                                       RTS                     ; Done
+82F0 38 DD 82                                         _NEG16: JPS     _NOT16          ; Bitwise NOT R1
+82F3 0E 01                                                    LDI     1               ; Add one to make it 2-complement
+82F5 28 10 88                                                 ADB     R1.0            ; :
+82F8 0E 00                                                    LDI     0               ; :
+82FA 2A 11 88                                                 ACB     R1.1            ; :
+82FD 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
                                                       ;       R1X = -R1X
                                                       
-82D8 38 A5 82                                         _NEG32: JPS     _NOT32          ; Bitwise NOT R1X
-82DB 0E 01                                                    LDI     1               ; Add one to make it 2-complement
-82DD 28 10 88                                                 ADB     R1.0            ; :
-82E0 0D                                                       DEC                     ; :
-82E1 2A 11 88                                                 ACB     R1.1            ; :
-82E4 2A 12 88                                                 ACB     R1.2            ; :
-82E7 2A 13 88                                                 ACB     R1.3            ; :
-82EA 39                                                       RTS                     ; Done
+82FE 38 CB 82                                         _NEG32: JPS     _NOT32          ; Bitwise NOT R1X
+8301 0E 01                                                    LDI     1               ; Add one to make it 2-complement
+8303 28 10 88                                                 ADB     R1.0            ; :
+8306 0D                                                       DEC                     ; :
+8307 2A 11 88                                                 ACB     R1.1            ; :
+830A 2A 12 88                                                 ACB     R1.2            ; :
+830D 2A 13 88                                                 ACB     R1.3            ; :
+8310 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
                                                       ;       R1 <-> R2
                                                       
-82EB 38 71 81                                         _XCH16: JPS     _PUSH1          ; Temp = R1
-82EE 15 14 88                                                 LDA     R2.0            ; R1 = R2
-82F1 16 10 88                                                 STA     R1.0            ; :
-82F4 15 15 88                                                 LDA     R2.1            ; :
-82F7 16 11 88                                                 STA     R1.1            ; :
-82FA 38 B6 80                                                 JPS     _POP2           ; R2 = Temp
-82FD 39                                                       RTS                     ; Done
+8311 38 71 81                                         _XCH16: JPS     _PUSH1          ; Temp = R1
+8314 15 14 88                                                 LDA     R2.0            ; R1 = R2
+8317 16 10 88                                                 STA     R1.0            ; :
+831A 15 15 88                                                 LDA     R2.1            ; :
+831D 16 11 88                                                 STA     R1.1            ; :
+8320 38 B6 80                                                 JPS     _POP2           ; R2 = Temp
+8323 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
                                                       ;       R1 = (R1)
                                                       
-82FE 1D 10 88                                         _AT:    LDR     R1              ; Get LSB
-8301 16 12 88                                                 STA     R1.2            ; ... Store temp
-8304 2E 10 88                                                 INW     R1              ; Bump
-8307 1D 10 88                                                 LDR     R1              ; Get MSB
-830A 16 13 88                                                 STA     R1.3            ; ... Store temp
-830D 15 12 88                                                 LDA     R1.2            ; Get temp LSB
-8310 16 10 88                                                 STA     R1.0            ; ... Store
-8313 15 13 88                                                 LDA     R1.3            ; Get temp MSB
-8316 16 11 88                                                 STA     R1.1            ; ... Store
-8319 39                                                       RTS                     ; Done
+8324 1D 10 88                                         _AT:    LDR     R1              ; Get LSB
+8327 16 12 88                                                 STA     R1.2            ; ... Store temp
+832A 2E 10 88                                                 INW     R1              ; Bump
+832D 1D 10 88                                                 LDR     R1              ; Get MSB
+8330 16 13 88                                                 STA     R1.3            ; ... Store temp
+8333 15 12 88                                                 LDA     R1.2            ; Get temp LSB
+8336 16 10 88                                                 STA     R1.0            ; ... Store
+8339 15 13 88                                                 LDA     R1.3            ; Get temp MSB
+833C 16 11 88                                                 STA     R1.1            ; ... Store
+833F 39                                                       RTS                     ; Done
                                                       
                                                       ; ------------------------------
                                                       ;       "HALT"
                                                       
-831A 1C 83                                            _HALT:  DW      _HALT0
-831C 14 1C 83                                         _HALT0: JPA     _HALT0
+8340 42 83                                            _HALT:  DW      _HALT0
+8342 14 42 83                                         _HALT0: JPA     _HALT0
+                                                      
+                                                      ; ------------------------------
+                                                      ;       +ORIGIN
+                                                      ; NOTE: Index number in R2
+                                                      
+8345 0E 00                                            _PORIG: LDI     <ORIGIN         ; R1 = ORIGIN address
+8347 16 10 88                                                 STA     R1.0            ; :
+834A 0E 00                                                    LDI     >ORIGIN         ; :
+834C 16 11 88                                                 STA     R1.1            ; :
+834F 15 14 88                                                 LDA     R2.0            ; Get index number
+8352 30 10 88                                                 ADW     R1              ; Compute addr
+8355 39                                                       RTS                     ; Done
+                                                      
+                                                      ; ------------------------------
+                                                      ;       _USER
+                                                      ; NOTE: Index number in R2
+                                                      
+8356 15 08 88                                         _USER:  LDA     UP.0            ; R1 = UP
+8359 16 10 88                                                 STA     R1.0            ; :
+835C 15 09 88                                                 LDA     UP.1            ; :
+835F 16 11 88                                                 STA     R1.1            ; :
+8362 15 14 88                                                 LDA     R2.0            ; Get index number
+8365 30 10 88                                                 ADW     R1              ; Compute addr
+8368 39                                                       RTS                     ; Done
                                                       
                                                       
                                                       ; INCLUDE         inner.asm
@@ -568,43 +614,43 @@
                                                       ; ----------------------------------------------------------------------
                                                       ; INNER INTERPRETER
                                                       
-831F 2F 04 88                                         DPUSH:  DEW     SP              ; -(SP) = BC
-8322 15 13 88                                                 LDA     R1.3
-8325 1E 04 88                                                 STR     SP
-8328 2F 04 88                                                 DEW     SP
-832B 15 12 88                                                 LDA     R1.2
-832E 1E 04 88                                                 STR     SP
-8331 2F 04 88                                         PUSH:   DEW     SP              ; -(SP) = DE
-8334 15 11 88                                                 LDA     R1.1
-8337 1E 04 88                                                 STR     SP
-833A 2F 04 88                                                 DEW     SP
-833D 15 10 88                                                 LDA     R1.0
-8340 1E 04 88                                                 STR     SP
-8343 1D 00 88                                         NEXT:   LDR     IP              ; WA = (IP)+
-8346 16 02 88                                                 STA     WA.0
-8349 2E 00 88                                                 INW     IP
-834C 1D 00 88                                                 LDR     IP
-834F 16 03 88                                                 STA     WA.1
-8352 2E 00 88                                                 INW     IP
-8355 1D 02 88                                         NEXT10: LDR     WA              ; R1 = (WA)+
-8358 16 10 88                                                 STA     R1.0
-835B 2E 02 88                                                 INW     WA
-835E 1D 02 88                                                 LDR     WA
-8361 16 11 88                                                 STA     R1.1
-8364 2E 02 88                                                 INW     WA
-8367 1C 10 88                                                 JPR     R1              ; jump @(R1)
+8369 2F 04 88                                         DPUSH:  DEW     SP              ; -(SP) = R1X
+836C 15 13 88                                                 LDA     R1.3
+836F 1E 04 88                                                 STR     SP
+8372 2F 04 88                                                 DEW     SP
+8375 15 12 88                                                 LDA     R1.2
+8378 1E 04 88                                                 STR     SP
+837B 2F 04 88                                         PUSH:   DEW     SP              ; -(SP) = R1
+837E 15 11 88                                                 LDA     R1.1
+8381 1E 04 88                                                 STR     SP
+8384 2F 04 88                                                 DEW     SP
+8387 15 10 88                                                 LDA     R1.0
+838A 1E 04 88                                                 STR     SP
+838D 1D 00 88                                         NEXT:   LDR     IP              ; WA = (IP)+
+8390 16 02 88                                                 STA     WA.0
+8393 2E 00 88                                                 INW     IP
+8396 1D 00 88                                                 LDR     IP
+8399 16 03 88                                                 STA     WA.1
+839C 2E 00 88                                                 INW     IP
+839F 1D 02 88                                         NEXT10: LDR     WA              ; R1 = (WA)+
+83A2 16 10 88                                                 STA     R1.0
+83A5 2E 02 88                                                 INW     WA
+83A8 1D 02 88                                                 LDR     WA
+83AB 16 11 88                                                 STA     R1.1
+83AE 2E 02 88                                                 INW     WA
+83B1 1C 10 88                                                 JPR     R1              ; jump @(R1)
                                                       
                                                       ; ------------------------------
                                                       ;       Push TRUE and FALSE
                                                       
-836A 2C 10 88                                         PUSHT:  CLW     R1              ; A zero
-836D 2F 10 88                                                 DEW     R1              ; Make it into a -1 i.e. TRUE flag
-8370 38 71 81                                                 JPS     _PUSH1          ; Push onto dstack
-8373 14 43 83                                                 JPA     NEXT
+83B4 2C 10 88                                         PUSHT:  CLW     R1              ; A zero
+83B7 2F 10 88                                                 DEW     R1              ; Make it into a -1 i.e. TRUE flag
+83BA 38 71 81                                                 JPS     _PUSH1          ; Push onto dstack
+83BD 14 8D 83                                                 JPA     NEXT
                                                       
-8376 2C 10 88                                         PUSHF:  CLW     R1              ; A zero
-8379 38 71 81                                                 JPS     _PUSH1          ; Push onto dstack
-837C 14 43 83                                                 JPA     NEXT
+83C0 2C 10 88                                         PUSHF:  CLW     R1              ; A zero
+83C3 38 71 81                                                 JPS     _PUSH1          ; Push onto dstack
+83C6 14 8D 83                                                 JPA     NEXT
                                                       
                                                       ; INCLUDE         primaries.asm
                                                       
@@ -612,272 +658,517 @@
                                                       ; FORTH PRIMARIES
                                                       ;
                                                       
-837F 83 4C 49 D4                                      HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
-8383 00 00                                                    DW      0
-8385 87 83                                            LIT:    DW      LIT0
-8387 38 2A 80                                         LIT0:   JPS     _LIT            ; R1 = (IP)+
-838A 14 31 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
+83C9 83 4C 49 D4                                      HLIT:   DB      ^3 "LI" ^'T'                            ; ***** LIT
+83CD 00 00                                                    DW      0
+83CF D1 83                                            LIT:    DW      LIT0
+83D1 38 2A 80                                         LIT0:   JPS     _LIT            ; R1 = (IP)+
+83D4 14 7B 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
                                                       
-838D 87 45 58 45 43 55 54 C5                          HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
-8395 7F 83                                                    DW      HLIT
-8397 99 83                                            EXEC:   DW      EXEC0
-8399 1D 04 88                                         EXEC0:  LDR     SP              ; WA = (SP)+
-839C 16 02 88                                                 STA     WA.0
-839F 2E 04 88                                                 INW     SP
-83A2 1D 04 88                                                 LDR     SP
-83A5 16 03 88                                                 STA     WA.1
-83A8 2E 04 88                                                 INW     SP
-83AB 14 55 83                                                 JPA     NEXT10          ; jump @(WA)+
+83D7 87 45 58 45 43 55 54 C5                          HEXEC:  DB      ^7 "EXECUT" ^'E'                        ; ***** EXECUTE
+83DF C9 83                                                    DW      HLIT
+83E1 E3 83                                            EXEC:   DW      EXEC0
+83E3 1D 04 88                                         EXEC0:  LDR     SP              ; WA = (SP)+
+83E6 16 02 88                                                 STA     WA.0
+83E9 2E 04 88                                                 INW     SP
+83EC 1D 04 88                                                 LDR     SP
+83EF 16 03 88                                                 STA     WA.1
+83F2 2E 04 88                                                 INW     SP
+83F5 14 9F 83                                                 JPA     NEXT10          ; jump @(WA)+
                                                       
-83AE 86 42 52 41 4E 43 C8                             HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
-83B5 8D 83                                                    DW      HEXEC
-83B7 B9 83                                            BRAN:   DW      BRAN0
-83B9 38 3D 80                                         BRAN0:  JPS     _BRAN           ; IP = IP + (IP)
-83BC 14 43 83                                                 JPA     NEXT
+83F8 86 42 52 41 4E 43 C8                             HBRAN:  DB      ^6 "BRANC" ^'H'                         ; ***** BRANCH
+83FF D7 83                                                    DW      HEXEC
+8401 03 84                                            BRAN:   DW      BRAN0
+8403 38 3D 80                                         BRAN0:  JPS     _BRAN           ; IP = IP + (IP)
+8406 14 8D 83                                                 JPA     NEXT
                                                       
-83BF 87 30 42 52 41 4E 43 C8                          HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** 0BRANCH
-83C7 AE 83                                                    DW      HBRAN
-83C9 CB 83                                            ZBRAN:  DW      ZBRAN0
-83CB 1D 04 88                                         ZBRAN0: LDR     SP
-83CE 11 00                                                    CPI     0               ; Low byte non-zero?
-83D0 3A E4 83                                                 BNE     ZBRA10          ; YES: Do not branch
-83D3 2E 04 88                                                 INW     SP
-83D6 1D 04 88                                                 LDR     SP
-83D9 11 00                                                    CPI     0               ; High byte non-zero?
-83DB 3A E7 83                                                 BNE     ZBRA20          ; YES: Do not branch
-83DE 2E 04 88                                                 INW     SP
-83E1 14 B9 83                                                 JPA     BRAN0           ; IP = IP + (IP); NEXT
-83E4 2E 04 88                                         ZBRA10: INW     SP
-83E7 2E 04 88                                         ZBRA20: INW     SP
-83EA 2E 00 88                                                 INW     IP              ; Just skip jump offset
-83ED 2E 00 88                                                 INW     IP
-83F0 14 43 83                                                 JPA     NEXT
+8409 87 30 42 52 41 4E 43 C8                          HZBRAN: DB      ^7 "0BRANC" ^'H'                        ; ***** 0BRANCH
+8411 F8 83                                                    DW      HBRAN
+8413 15 84                                            ZBRAN:  DW      ZBRAN0
+8415 1D 04 88                                         ZBRAN0: LDR     SP
+8418 11 00                                                    CPI     0               ; Low byte non-zero?
+841A 3A 2E 84                                                 BNE     ZBRA10          ; YES: Do not branch
+841D 2E 04 88                                                 INW     SP
+8420 1D 04 88                                                 LDR     SP
+8423 11 00                                                    CPI     0               ; High byte non-zero?
+8425 3A 31 84                                                 BNE     ZBRA20          ; YES: Do not branch
+8428 2E 04 88                                                 INW     SP
+842B 14 03 84                                                 JPA     BRAN0           ; IP = IP + (IP); NEXT
+842E 2E 04 88                                         ZBRA10: INW     SP
+8431 2E 04 88                                         ZBRA20: INW     SP
+8434 2E 00 88                                                 INW     IP              ; Just skip jump offset
+8437 2E 00 88                                                 INW     IP
+843A 14 8D 83                                                 JPA     NEXT
                                                       
-83F3 87 28 2B 4C 4F 4F 50 A9                          HXPLOO: DB      ^7 "(+LOOP" ^')'                        ; ***** (+LOOP)
-83FB BF 83                                                    DW      HZBRAN
-83FD FF 83                                            XPLOO:  DW      XPLOO0
-83FF 38 AF 80                                         XPLOO0: JPS     _GET2           ; R2 = (SP) [only copying increment]
-8402 38 17 81                                                 JPS     _RPOP1          ; R1 = (RP)+
-8405 38 0E 82                                                 JPS     _ADD16          ; R1 = counter'
-8408 38 2E 81                                                 JPS     _RGET2          ; R2 = limit
-840B 38 CB 81                                                 JPS     _RPUSH1         ; -(RP) = R1'
-840E 38 F9 80                                                 JPS     _POP3           ; R3 = (SP)+ [now popping incr]
-8411 15 19 88                                                 LDA     R3.1            ; Is increment negative?
-8414 11 00                                                    CPI     0               ; :
-8416 3E 1C 84                                                 BPL     XPLO10
+843D 87 28 2B 4C 4F 4F 50 A9                          HXPLOO: DB      ^7 "(+LOOP" ^')'                        ; ***** (+LOOP)
+8445 09 84                                                    DW      HZBRAN
+8447 49 84                                            XPLOO:  DW      XPLOO0
+8449 38 AF 80                                         XPLOO0: JPS     _GET2           ; R2 = (SP) [only copying increment]
+844C 38 17 81                                                 JPS     _RPOP1          ; R1 = (RP)+
+844F 38 0E 82                                                 JPS     _ADD16          ; R1 = counter'
+8452 38 2E 81                                                 JPS     _RGET2          ; R2 = limit
+8455 38 CB 81                                                 JPS     _RPUSH1         ; -(RP) = R1'
+8458 38 F9 80                                                 JPS     _POP3           ; R3 = (SP)+ [now popping incr]
+845B 15 19 88                                                 LDA     R3.1            ; Is increment negative?
+845E 11 00                                                    CPI     0               ; :
+8460 3E 66 84                                                 BPL     XPLO10
                                                               ; Handle negative increment
-8419 38 EB 82                                                 JPS     _XCH16          ; R1 <-> R2
+8463 38 11 83                                                 JPS     _XCH16          ; R1 <-> R2
                                                               ; Compare counter to limit
-841C 15 11 88                                         XPLO10: LDA     R1.1            ; Compare MSB
-841F 19 15 88                                                 CPA     R2.1            ; :
-8422 3F B9 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
-8425 3B 2B 84                                                 BEQ     XPLO20          ; MSBs are equal, check LSBs
-8428 14 34 84                                                 JPA     XPLO30          ; R1 is greater, stop looping
+8466 15 11 88                                         XPLO10: LDA     R1.1            ; Compare MSB
+8469 19 15 88                                                 CPA     R2.1            ; :
+846C 3F 03 84                                                 BMI     BRAN0           ; R2 is greater, continue looping
+846F 3B 75 84                                                 BEQ     XPLO20          ; MSBs are equal, check LSBs
+8472 14 7E 84                                                 JPA     XPLO30          ; R1 is greater, stop looping
                                                               ; MSBs are equal
-842B 15 10 88                                         XPLO20: LDA     R1.0            ; Compare LSB
-842E 19 14 88                                                 CPA     R2.0            
-8431 3F B9 83                                                 BMI     BRAN0           ; R2 is greater, continue looping
+8475 15 10 88                                         XPLO20: LDA     R1.0            ; Compare LSB
+8478 19 14 88                                                 CPA     R2.0            
+847B 3F 03 84                                                 BMI     BRAN0           ; R2 is greater, continue looping
                                                               ; Limit reached, cleanup rstack and stop looping
-8434 0E 04                                            XPLO30: LDI     4               ; Drop loop counter ...
-8436 30 06 88                                                 ADW     RP              ; ... and loop limit
-8439 0E 02                                                    LDI     2               ; Skip branch offset
-843B 30 00 88                                                 ADW     IP              ; :
-843E 14 43 83                                                 JPA     NEXT
+847E 0E 04                                            XPLO30: LDI     4               ; Drop loop counter ...
+8480 30 06 88                                                 ADW     RP              ; ... and loop limit
+8483 0E 02                                                    LDI     2               ; Skip branch offset
+8485 30 00 88                                                 ADW     IP              ; :
+8488 14 8D 83                                                 JPA     NEXT
                                                       
-8441 86 28 4C 4F 4F 50 A9                             HXLOOP: DB      ^6 "(LOOP" ^')'                         ; ***** (LOOP)
-8448 F3 83                                                    DW      HXPLOO
-844A 4C 84                                            XLOOP:  DW      XLOOP0
-844C 2C 10 88                                         XLOOP0: CLW     R1              ; Push a one
-844F 2E 10 88                                                 INW     R1              ; :
-8452 38 71 81                                                 JPS     _PUSH1          ; :
-8455 14 FF 83                                                 JPA     XPLOO0          ; (+LOOP)
+848B 86 28 4C 4F 4F 50 A9                             HXLOOP: DB      ^6 "(LOOP" ^')'                         ; ***** (LOOP)
+8492 3D 84                                                    DW      HXPLOO
+8494 96 84                                            XLOOP:  DW      XLOOP0
+8496 2C 10 88                                         XLOOP0: CLW     R1              ; Push a one
+8499 2E 10 88                                                 INW     R1              ; :
+849C 38 71 81                                                 JPS     _PUSH1          ; :
+849F 14 49 84                                                 JPA     XPLOO0          ; (+LOOP)
                                                       
-8458 84 28 44 4F A9                                   HXDO:   DB      ^4 "(DO" ^')'                           ; ***** (DO)
-845D 41 84                                                    DW      HXLOOP
-845F 61 84                                            XDO:    DW      XDO0
-8461 38 73 80                                         XDO0:   JPS     _POP1           ; Loop counter
-8464 38 B6 80                                                 JPS     _POP2           ; Limit
-8467 38 E9 81                                                 JPS     _RPUSH2         ; Push limit onto rstack
-846A 38 CB 81                                                 JPS     _RPUSH1         ; Push loop counter onto rstack
-846D 14 43 83                                                 JPA     NEXT
+84A2 84 28 44 4F A9                                   HXDO:   DB      ^4 "(DO" ^')'                           ; ***** (DO)
+84A7 8B 84                                                    DW      HXLOOP
+84A9 AB 84                                            XDO:    DW      XDO0
+84AB 38 73 80                                         XDO0:   JPS     _POP1           ; Loop counter
+84AE 38 B6 80                                                 JPS     _POP2           ; Limit
+84B1 38 E9 81                                                 JPS     _RPUSH2         ; Push limit onto rstack
+84B4 38 CB 81                                                 JPS     _RPUSH1         ; Push loop counter onto rstack
+84B7 14 8D 83                                                 JPA     NEXT
                                                       
-8470 81 C9                                            HI:     DB      ^1 ^'I'                                 ; ***** I
-8472 58 84                                                    DW      HXDO
-8474 76 84                                            I:      DW      I0
-8476 38 10 81                                         I0:     JPS     _RGET1          ; Get loop counter
-8479 38 71 81                                                 JPS     _PUSH1          ; Push it onto dstack
-847C 14 43 83                                                 JPA     NEXT
+84BA 81 C9                                            HI:     DB      ^1 ^'I'                                 ; ***** I
+84BC A2 84                                                    DW      HXDO
+84BE C0 84                                            I:      DW      I0
+84C0 38 10 81                                         I0:     JPS     _RGET1          ; Get loop counter
+84C3 38 71 81                                                 JPS     _PUSH1          ; Push it onto dstack
+84C6 14 8D 83                                                 JPA     NEXT
                                                       
-847F 85 44 49 47 49 D4                                HDIGIT: DB      ^5 "DIGI" ^'T'                          ; ***** DIGIT
-8485 70 84                                                    DW      HI
-8487 89 84                                            DIGIT:  DW      DIGIT0
-8489 38 B6 80                                         DIGIT0: JPS     _POP2           ; Get base into R2.0
-848C 38 73 80                                                 JPS     _POP1           ; Get character into R1.0
-848F 15 10 88                                                 LDA     R1.0            ; Get character into A
-8492 10 30                                                    SBI     '0'             ; Assume '0' - '9'
-8494 3F B0 84                                                 BMI     DIGI88          ; Oops! Negative
-8497 11 0A                                                    CPI     10              ; Greater than 9?
-8499 3F 9E 84                                                 BMI     DIGI10          ; No, it is 0 - 9
+84C9 85 44 49 47 49 D4                                HDIGIT: DB      ^5 "DIGI" ^'T'                          ; ***** DIGIT
+84CF BA 84                                                    DW      HI
+84D1 D3 84                                            DIGIT:  DW      DIGIT0
+84D3 38 B6 80                                         DIGIT0: JPS     _POP2           ; Get base into R2.0
+84D6 38 73 80                                                 JPS     _POP1           ; Get character into R1.0
+84D9 15 10 88                                                 LDA     R1.0            ; Get character into A
+84DC 10 30                                                    SBI     '0'             ; Assume '0' - '9'
+84DE 3F FA 84                                                 BMI     DIGI88          ; Oops! Negative
+84E1 11 0A                                                    CPI     10              ; Greater than 9?
+84E3 3F E8 84                                                 BMI     DIGI10          ; No, it is 0 - 9
                                                               ; 'A' - 'Z' case
-849C 10 07                                                    SBI     7               ; ch -= ('A' - '0') + 10
-849E 19 14 88                                         DIGI10: CPA     R2.0            ; Greater than base?
-84A1 3F A7 84                                                 BMI     DIGI77
-84A4 14 B0 84                                                 JPA     DIGI88
-84A7 16 10 88                                         DIGI77: STA     R1.0            ; Store binary value
-84AA 38 71 81                                                 JPS     _PUSH1          ; Push the value
-84AD 14 6A 83                                                 JPA     PUSHT           ; Push TRUE; NEXT
-84B0 14 76 83                                         DIGI88: JPA     PUSHF           ; Push FALSE; NEXT
+84E6 10 07                                                    SBI     7               ; ch -= ('A' - '0') + 10
+84E8 19 14 88                                         DIGI10: CPA     R2.0            ; Greater than base?
+84EB 3F F1 84                                                 BMI     DIGI77
+84EE 14 FA 84                                                 JPA     DIGI88
+84F1 16 10 88                                         DIGI77: STA     R1.0            ; Store binary value
+84F4 38 71 81                                                 JPS     _PUSH1          ; Push the value
+84F7 14 B4 83                                                 JPA     PUSHT           ; Push TRUE; NEXT
+84FA 14 C0 83                                         DIGI88: JPA     PUSHF           ; Push FALSE; NEXT
                                                       
-84B3 86 28 46 49 4E 44 A9                             HPFIND: DB      ^6 "(FIND" ^')'                         ; ***** (FIND)
-84BA 7F 84                                                    DW      HDIGIT
-84BC BE 84                                            PFIND:  DW      PFIND0
-84BE 38 73 80                                         PFIND0: JPS     _POP1           ; NFA
-84C1 38 F9 80                                                 JPS     _POP3           ; String address
-84C4 15 18 88                                         PFIN10: LDA     R3.0            ; R2 = R3 (string address)
-84C7 16 14 88                                                 STA     R2.0            ; :
-84CA 15 19 88                                                 LDA     R3.1            ; :
-84CD 16 15 88                                                 STA     R2.1            ; :
+84FD 86 28 46 49 4E 44 A9                             HPFIND: DB      ^6 "(FIND" ^')'                         ; ***** (FIND)
+8504 C9 84                                                    DW      HDIGIT
+8506 08 85                                            PFIND:  DW      PFIND0
+8508 38 73 80                                         PFIND0: JPS     _POP1           ; NFA
+850B 38 F9 80                                                 JPS     _POP3           ; String address
+850E 15 18 88                                         PFIN10: LDA     R3.0            ; R2 = R3 (string address)
+8511 16 14 88                                                 STA     R2.0            ; :
+8514 15 19 88                                                 LDA     R3.1            ; :
+8517 16 15 88                                                 STA     R2.1            ; :
                                                               ; Fast comparison of length bytes
-84D0 1D 10 88                                                 LDR     R1              ; Get lByte
-84D3 16 12 88                                                 STA     R1.2            ; ... Store as potential result
-84D6 05                                                       LSL                     ; lByte &= 0x3F
-84D7 05                                                       LSL                     ; :
-84D8 07                                                       LSR                     ; :
-84D9 07                                                       LSR                     ; :
-84DA 16 16 88                                                 STA     R2.2            ; R2.2 is counter for string match
-84DD 21 14 88                                                 CPR     R2              ; lByte == string length?
-84E0 3A FF 84                                                 BNE     PFIN25
+851A 1D 10 88                                                 LDR     R1              ; Get lByte
+851D 16 12 88                                                 STA     R1.2            ; ... Store as potential result
+8520 05                                                       LSL                     ; lByte &= 0x3F
+8521 05                                                       LSL                     ; :
+8522 07                                                       LSR                     ; :
+8523 07                                                       LSR                     ; :
+8524 16 16 88                                                 STA     R2.2            ; R2.2 is counter for string match
+8527 21 14 88                                                 CPR     R2              ; lByte == string length?
+852A 3A 49 85                                                 BNE     PFIN25
                                                               ; Length bytes match, check names
-84E3 2E 10 88                                         PFIN20: INW     R1              ; Bump pointers
-84E6 2E 14 88                                                 INW     R2              ; :
-84E9 1D 10 88                                                 LDR     R1              ; Get char from dictionary
-84EC 05                                                       LSL                     ; char &= 0x7F
-84ED 07                                                       LSR
-84EE 21 14 88                                                 CPR     R2              ; Is it a match with search string?
-84F1 3A 02 85                                                 BNE     PFIN30          ; NO: Look at next header in dictionary
-84F4 27 16 88                                                 DEB     R2.2            ; Decrement character counter
-84F7 11 00                                                    CPI     0               ; :
-84F9 3B 23 85                                                 BEQ     PFIN77          ; YES: This is the word we are looking for
-84FC 14 E3 84                                                 JPA     PFIN20          ; Match so far, try next char
+852D 2E 10 88                                         PFIN20: INW     R1              ; Bump pointers
+8530 2E 14 88                                                 INW     R2              ; :
+8533 1D 10 88                                                 LDR     R1              ; Get char from dictionary
+8536 05                                                       LSL                     ; char &= 0x7F
+8537 07                                                       LSR
+8538 21 14 88                                                 CPR     R2              ; Is it a match with search string?
+853B 3A 4C 85                                                 BNE     PFIN30          ; NO: Look at next header in dictionary
+853E 27 16 88                                                 DEB     R2.2            ; Decrement character counter
+8541 11 00                                                    CPI     0               ; :
+8543 3B 6D 85                                                 BEQ     PFIN77          ; YES: This is the word we are looking for
+8546 14 2D 85                                                 JPA     PFIN20          ; Match so far, try next char
                                                               ; Step to next header in dictionary
-84FF 2E 10 88                                         PFIN25: INW     R1              ; Bump NFA pointer to actual characters
-8502 2E 10 88                                         PFIN30: INW     R1              ; Bump NFA pointer
-8505 27 16 88                                                 DEB     R2.2            ; Decrement character counter
-8508 11 00                                                    CPI     0               ; End of name field?
-850A 3A 02 85                                                 BNE     PFIN30          ; NO: Step to next char
-850D 38 FE 82                                                 JPS     _AT             ; R1 = (R1)
-8510 15 11 88                                                 LDA     R1.1            ; At end of dictionary?
-8513 11 00                                                    CPI     0               ; :
-8515 3A C4 84                                                 BNE     PFIN10          ; NO: Try this word for match
-8518 15 10 88                                                 LDA     R1.0            ; :
-851B 11 00                                                    CPI     0               ; :
-851D 3A C4 84                                                 BNE     PFIN10          ; NO: Try this word for match
+8549 2E 10 88                                         PFIN25: INW     R1              ; Bump NFA pointer to actual characters
+854C 2E 10 88                                         PFIN30: INW     R1              ; Bump NFA pointer
+854F 27 16 88                                                 DEB     R2.2            ; Decrement character counter
+8552 11 00                                                    CPI     0               ; End of name field?
+8554 3A 4C 85                                                 BNE     PFIN30          ; NO: Step to next char
+8557 38 24 83                                                 JPS     _AT             ; R1 = (R1)
+855A 15 11 88                                                 LDA     R1.1            ; At end of dictionary?
+855D 11 00                                                    CPI     0               ; :
+855F 3A 0E 85                                                 BNE     PFIN10          ; NO: Try this word for match
+8562 15 10 88                                                 LDA     R1.0            ; :
+8565 11 00                                                    CPI     0               ; :
+8567 3A 0E 85                                                 BNE     PFIN10          ; NO: Try this word for match
                                                               ; Word not found, return a single FALSE
-8520 14 76 83                                         PFIN88: JPA     PUSHF           ; Done
+856A 14 C0 83                                         PFIN88: JPA     PUSHF           ; Done
                                                               ; Word found, return PFA, lByte, TRUE
-8523 0E 05                                            PFIN77: LDI     5               ; Bump ptr to PFA
-8525 30 10 88                                                 ADW     R1              ; :
-8528 38 71 81                                                 JPS     _PUSH1          ; Push PFA
-852B 15 12 88                                                 LDA     R1.2            ; Get stored length byte
-852E 16 10 88                                                 STA     R1.0            ; :
-8531 24 11 88                                                 CLB     R1.1            ; Clear MSB
-8534 38 71 81                                                 JPS     _PUSH1          ; Push length byte
-8537 14 6A 83                                                 JPA     PUSHT           ; Done
+856D 0E 05                                            PFIN77: LDI     5               ; Bump ptr to PFA
+856F 30 10 88                                                 ADW     R1              ; :
+8572 38 71 81                                                 JPS     _PUSH1          ; Push PFA
+8575 15 12 88                                                 LDA     R1.2            ; Get stored length byte
+8578 16 10 88                                                 STA     R1.0            ; :
+857B 24 11 88                                                 CLB     R1.1            ; Clear MSB
+857E 38 71 81                                                 JPS     _PUSH1          ; Push length byte
+8581 14 B4 83                                                 JPA     PUSHT           ; Done
                                                       
-853A 87 45 4E 43 4C 4F 53 C5                          HENCL:  DB      ^7 "ENCLOS" ^'E'                        ; ***** ENCLOSE
-8542 B3 84                                                    DW      HPFIND
-8544 46 85                                            ENCL:   DW      ENCL0
-8546 38 F9 80                                         ENCL0:  JPS     _POP3           ; Get delimiter char
-8549 38 6C 80                                                 JPS     _GET1           ; Get addr of input
-854C 2C 14 88                                                 CLW     R2              ; Initialize char index
+8584 87 45 4E 43 4C 4F 53 C5                          HENCL:  DB      ^7 "ENCLOS" ^'E'                        ; ***** ENCLOSE
+858C FD 84                                                    DW      HPFIND
+858E 90 85                                            ENCL:   DW      ENCL0
+8590 38 F9 80                                         ENCL0:  JPS     _POP3           ; Get delimiter char
+8593 38 6C 80                                                 JPS     _GET1           ; Get addr of input
+8596 2C 14 88                                                 CLW     R2              ; Initialize char index
                                                               ; Scan preceeding delimiters
-854F 1D 10 88                                         ENCL10: LDR     R1              ; Get char from input
-8552 11 00                                                    CPI     0               ; Is it <NUL>?
-8554 3B 8C 85                                                 BEQ     ENCL50          ; YES: <NUL> before first non-delimiter
-8557 19 18 88                                                 CPA     R3.0            ; Is it a delimiter?
-855A 3A 66 85                                                 BNE     ENCL20          ; NO: We have the start of next token
-855D 2E 10 88                                                 INW     R1              ; Bump to next char ...
-8560 26 14 88                                                 INB     R2.0            ; ... also increase index
-8563 14 4F 85                                                 JPA     ENCL10          ; Go back to look at next char
+8599 1D 10 88                                         ENCL10: LDR     R1              ; Get char from input
+859C 11 00                                                    CPI     0               ; Is it <NUL>?
+859E 3B D6 85                                                 BEQ     ENCL50          ; YES: <NUL> before first non-delimiter
+85A1 19 18 88                                                 CPA     R3.0            ; Is it a delimiter?
+85A4 3A B0 85                                                 BNE     ENCL20          ; NO: We have the start of next token
+85A7 2E 10 88                                                 INW     R1              ; Bump to next char ...
+85AA 26 14 88                                                 INB     R2.0            ; ... also increase index
+85AD 14 99 85                                                 JPA     ENCL10          ; Go back to look at next char
                                                               ; Start of token
-8566 38 8F 81                                         ENCL20: JPS     _PUSH2          ; Push result n1 (first char of token)
-8569 1D 10 88                                         ENCL30: LDR     R1              ; Get char from input
-856C 11 00                                                    CPI     0               ; Is it <NUL>?
-856E 3B 9B 85                                                 BEQ     ENCL60          ; YES: <NUL> found
-8571 19 18 88                                                 CPA     R3.0            ; Is it a delimiter?
-8574 3B 80 85                                                 BEQ     ENCL40          ; YES: We have the end of the token
-8577 2E 10 88                                                 INW     R1              ; Bump to next char ...
-857A 26 14 88                                                 INB     R2.0            ; ... also increase index
-857D 14 69 85                                                 JPA     ENCL30          ; Go back to look at next char
+85B0 38 8F 81                                         ENCL20: JPS     _PUSH2          ; Push result n1 (first char of token)
+85B3 1D 10 88                                         ENCL30: LDR     R1              ; Get char from input
+85B6 11 00                                                    CPI     0               ; Is it <NUL>?
+85B8 3B E5 85                                                 BEQ     ENCL60          ; YES: <NUL> found
+85BB 19 18 88                                                 CPA     R3.0            ; Is it a delimiter?
+85BE 3B CA 85                                                 BEQ     ENCL40          ; YES: We have the end of the token
+85C1 2E 10 88                                                 INW     R1              ; Bump to next char ...
+85C4 26 14 88                                                 INB     R2.0            ; ... also increase index
+85C7 14 B3 85                                                 JPA     ENCL30          ; Go back to look at next char
                                                               ; End of token
-8580 38 8F 81                                         ENCL40: JPS     _PUSH2          ; Push result n2 (ending delimiter)
-8583 26 14 88                                                 INB     R2.0            ; Also push n3 ...
-8586 38 8F 81                                                 JPS     _PUSH2          ; : ... (index to first non-scanned char)
-8589 14 43 83                                                 JPA     NEXT            ; Done
+85CA 38 8F 81                                         ENCL40: JPS     _PUSH2          ; Push result n2 (ending delimiter)
+85CD 26 14 88                                                 INB     R2.0            ; Also push n3 ...
+85D0 38 8F 81                                                 JPS     _PUSH2          ; : ... (index to first non-scanned char)
+85D3 14 8D 83                                                 JPA     NEXT            ; Done
                                                               ; <NUL> appears before token
-858C 26 14 88                                         ENCL50: INB     R2.0            ; Push i + 1
-858F 38 8F 81                                                 JPS     _PUSH2          ; :
-8592 27 14 88                                                 DEB     R2.0            ; Push i
-8595 38 8F 81                                                 JPS     _PUSH2          ; : ... indicating <NUL> before token
-8598 14 43 83                                                 JPA     NEXT            ; Done
+85D6 26 14 88                                         ENCL50: INB     R2.0            ; Push i + 1
+85D9 38 8F 81                                                 JPS     _PUSH2          ; :
+85DC 27 14 88                                                 DEB     R2.0            ; Push i
+85DF 38 8F 81                                                 JPS     _PUSH2          ; : ... indicating <NUL> before token
+85E2 14 8D 83                                                 JPA     NEXT            ; Done
                                                               ; Token ends with a <NUL>
-859B 38 8F 81                                         ENCL60: JPS     _PUSH2          ; Push i twice to indicate ...
-859E 38 8F 81                                                 JPS     _PUSH2          ; : ... that token ends in a <NUL>
-85A1 14 43 83                                                 JPA     NEXT            ; Done
+85E5 38 8F 81                                         ENCL60: JPS     _PUSH2          ; Push i twice to indicate ...
+85E8 38 8F 81                                                 JPS     _PUSH2          ; : ... that token ends in a <NUL>
+85EB 14 8D 83                                                 JPA     NEXT            ; Done
                                                       
-85A4 81 AB                                            HPLUS:  DB      ^1 ^'+'                                 ; ***** +
-85A6 00 00                                                    DW      0
-85A8 AA 85                                            PLUS:   DW      PLUS0
-85AA 38 B6 80                                         PLUS0:  JPS     _POP2           ; Get second operand
-85AD 38 73 80                                                 JPS     _POP1           ; Get first operand
-85B0 38 0E 82                                                 JPS     _ADD16          ; R1 = R1 + R2
-85B3 14 31 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
+85EE 84 45 4D 49 D4                                   HEMIT:  DB      ^4 "EMI" ^'T'                           ; ***** EMIT
+85F3 84 85                                                    DW      HENCL
+85F5 F7 85                                            EMIT:   DW      EMIT0
+85F7 38 73 80                                         EMIT0:  JPS     _POP1           ; Get character
+85FA 15 10 88                                                 LDA     R1.0            ; Send char to terminal
+85FD 02                                                       OUT                     ;
+85FE 14 8D 83                                                 JPA     NEXT            ; Done
                                                       
-85B6 82 44 AB                                         HDPLU:  DB      ^2 "D" ^'+'                             ; ***** D+
-85B9 00 00                                                    DW      0
-85BB BD 85                                            DPLUS:  DW      DPLUS0
-85BD 38 BD 80                                         DPLUS0: JPS     _DPOP2          ; Get second operand
-85C0 38 7A 80                                                 JPS     _DPOP1          ; Get first operand
-85C3 38 1B 82                                                 JPS     _ADD32          ; R1X = R1X + R2X
-85C6 14 1F 83                                                 JPA     DPUSH           ; -(SP) = R1X; NEXT
+8601 83 4B 45 D9                                      HKEY:   DB      ^3 "KE" ^'Y'                            ; ***** KEY
+8605 EE 85                                                    DW      HEMIT
+8607 09 86                                            KEY:    DW      KEY0
+8609 0A                                               KEY0:   INP                     ; Get char form terminal
+860A 11 FF                                                    CPI     0xFF            ; Did we get a character?
+860C 3B 09 86                                                 BEQ     KEY0            ; NO: Try again
+860F 16 10 88                                                 STA     R1.0            ; YES: Push character
+8612 24 11 88                                                 CLB     R1.1            ; :
+8615 14 7B 83                                                 JPA     PUSH            ; Push R1; NEXT
                                                       
-85C9 85 4D 49 4E 55 D3                                HMINUS: DB      ^5 "MINU" ^'S'                          ; ***** MINUS
-85CF 00 00                                                    DW      0
-85D1 D3 85                                            MINUS:  DW      MINUS0
-85D3 38 73 80                                         MINUS0: JPS     _POP1           ; Get operand
-85D6 38 CA 82                                                 JPS     _NEG16          ; Negate
-85D9 14 31 83                                                 JPA     PUSH
+8618 89 3F 54 45 52 4D 49 4E 41 CC                    HQTERM: DB      ^9 "?TERMINA" ^'L'                      ; ***** ?TERMINAL
+8622 01 86                                                    DW      HKEY
+8624 26 86                                            QTERM:  DW      QTERM0
+8626 2C 10 88                                         QTERM0: CLW     R1              ; Default FALSE to return
+8629 0A                                                       INP                     ; Get char from terminal
+862A 11 FF                                                    CPI     0xFF            ; Did we get a character?
+862C 3B 32 86                                                 BEQ     QTER10          ; NO: Return FALSE
+862F 2F 10 88                                                 DEW     R1              ; Make default FALSE into TRUE
+8632 14 7B 83                                         QTER10: JPA     PUSH            ; Push R1; NEXT
                                                       
-85DC 86 44 4D 49 4E 55 D3                             HDMINU: DB      ^6 "DMINU" ^'S'                         ; ***** DMINUS
-85E3 00 00                                                    DW      0
-85E5 E7 85                                            DMINU:  DW      DMINU0
-85E7 38 7A 80                                         DMINU0: JPS     _DPOP1          ; Get operand
-85EA 38 D8 82                                                 JPS     _NEG32          ; Negate
-85ED 14 1F 83                                                 JPA     DPUSH
+8635 82 43 D2                                         HCR:    DB      ^2 "C" ^'R'                             ; ***** CR
+8638 18 86                                                    DW      HQTERM
+863A 3C 86                                            CR:     DW      CR0
+863C 0E 0A                                            CR0:    LDI     CH_LF           ; Output a linefeed ...
+863E 02                                                       OUT                     ; ... to the terminal
+863F 14 8D 83                                                 JPA     NEXT            ; Done
                                                       
+8642 85 43 4D 4F 56 C5                                HCMOVE: DB      ^5 "CMOV" ^'E'                          ; ***** CMOVE
+8648 35 86                                                    DW      HCR
+864A 4C 86                                            CMOVE:  DW      CMOVE0
+864C 38 F9 80                                         CMOVE0: JPS     _POP3           ; count
+864F 38 B6 80                                                 JPS     _POP2           ; destination
+8652 38 73 80                                                 JPS     _POP1           ; source
+8655 1D 10 88                                         CMOV10: LDR     R1              ; Get byte from source
+8658 1E 14 88                                                 STR     R2              ; Store to destination
+865B 2E 10 88                                                 INW     R1              ; Bump source pointer
+865E 2E 14 88                                                 INW     R2              ; Bump destination pointer
+8661 2F 18 88                                                 DEW     R3              ; Decrement count
+8664 3B 6A 86                                                 BEQ     CMOV20          ; Count zero: We are done
+8667 14 55 86                                                 JPA     CMOV10          ; Count non-zero: Next byte
+866A 14 8D 83                                         CMOV20: JPA     NEXT            ; Done
+                                                      
+866D 82 55 AA                                         HUSTAR: DB      ^2 "U" ^'*'                             ; ***** U*
+8670 42 86                                                    DW      HCMOVE
+8672 74 86                                            USTAR:  DW      USTAR0
+8674 38 B6 80                                         USTAR0: JPS     _POP2           ; Get second operand
+8677 38 73 80                                                 JPS     _POP1           ; Get first operand
+867A 38 00 00                                                 JPS     _UMULT          ; u32 = u16 * u16
+867D 14 69 83                                                 JPA     DPUSH           ; Done
+                                                      
+8680 82 55 AF                                         HUSLAS: DB      ^2 "U" ^'/'                             ; ***** U/
+8683 6D 86                                                    DW      HUSTAR
+8685 87 86                                            USLAS:  DW      USLAS0
+8687 38 B6 80                                         USLAS0: JPS     _POP2           ; divisor
+868A 38 73 80                                                 JPS     _POP1           ; dividend, high 16b
+868D 15 10 88                                                 LDA     R1.0            ; Move high part to R1.2 and R1.3
+8690 16 12 88                                                 STA     R1.2            ; :
+8693 15 11 88                                                 LDA     R1.1            ; :
+8696 16 13 88                                                 STA     R1.3            ; :
+8699 38 73 80                                                 JPS     _POP1           ; dividend, low 16b
+869C 38 00 00                                                 JPS     _UDIV           ; u32 / u16 --> quot_u16, rem_u16
+869F 14 69 83                                                 JPA     DPUSH           ; Done
+                                                      
+86A2 83 41 4E C4                                      HAND:   DB      ^3 "AN" ^'D'                            ; ***** AND
+86A6 80 86                                                    DW      HUSLAS
+86A8 AA 86                                            AND:    DW      AND0
+86AA 38 B6 80                                         AND0:   JPS     _POP2           ; Get second operand
+86AD 38 73 80                                                 JPS     _POP1           ; Get first operand
+86B0 38 00 00                                                 JPS     _AND16          ; R1 = R1 & R2
+86B3 14 7B 83                                                 JPA     PUSH            ; Done
+                                                      
+86B6 82 4F D2                                         HOR:    DB      ^2 "O" ^'R'                             ; ***** OR
+86B9 A2 86                                                    DW      HAND
+86BB BD 86                                            OR:     DW      OR0
+86BD 38 B6 80                                         OR0:    JPS     _POP2           ; Get second operand
+86C0 38 73 80                                                 JPS     _POP1           ; Get first operand
+86C3 38 00 00                                                 JPS     _OR16           ; R1 = R1 | R2
+86C6 14 7B 83                                                 JPA     PUSH            ; Done
+                                                      
+86C9 83 58 4F D2                                      HXOR:   DB      ^3 "XO" ^'R'                            ; ***** XOR
+86CD B6 86                                                    DW      HOR
+86CF D1 86                                            XOR:    DW      XOR0
+86D1 38 B6 80                                         XOR0:   JPS     _POP2           ; Get second operand
+86D4 38 73 80                                                 JPS     _POP1           ; Get first operand
+86D7 38 00 00                                                 JPS     _XOR16          ; R1 = R1 ^ R2
+86DA 14 7B 83                                                 JPA     PUSH            ; Done
+                                                      
+86DD 83 53 50 C0                                      HSPAT:  DB      ^3 "SP" ^'@'                            ; ***** SP@
+86E1 C9 86                                                    DW      HXOR
+86E3 E5 86                                            SPAT:   DW      SPAT0
+86E5 15 04 88                                         SPAT0:  LDA     SP.0            ; Get stack pointer
+86E8 16 10 88                                                 STA     R1.0            ; : into R1
+86EB 15 05 88                                                 LDA     SP.1            ; :
+86EE 16 11 88                                                 STA     R1.1            ; :
+86F1 14 7B 83                                                 JPA     PUSH            ; Push R1; NEXT
+                                                      
+86F4 83 53 50 A1                                      HSPSTO: DB      ^3 "SP" ^'!'                            ; ***** SP!
+86F8 DD 86                                                    DW      HSPAT
+86FA FC 86                                            SPSTO:  DW      SPSTO0
+86FC 0E 06                                            SPSTO0: LDI     6               ; Index of SP0
+86FE 16 14 88                                                 STA     R2.0            ; : in USER table
+8701 38 56 83                                                 JPS     _USER           ; R1 = &USER[R2]
+8704 38 24 83                                                 JPS     _AT             ; R1 = (R1)
+8707 15 10 88                                                 LDA     R1.0            ; SP = R1
+870A 16 04 88                                                 STA     SP.0            ; :
+870D 15 11 88                                                 LDA     R1.1            ; :
+8710 16 05 88                                                 STA     SP.1            ; :
+8713 14 8D 83                                                 JPA     NEXT            ; Done
+                                                      
+8716 83 52 50 A1                                      HRPSTO: DB      ^3 "RP" ^'!'                            ; ***** RP!
+871A F4 86                                                    DW      HSPSTO
+871C 1E 87                                            RPSTO:  DW      RPSTO0
+871E 0E 18                                            RPSTO0: LDI     24              ; Index of SP0
+8720 16 14 88                                                 STA     R2.0            ; : in boot table
+8723 38 45 83                                                 JPS     _PORIG          ; R1 = &bootTable[R2]
+8726 38 24 83                                                 JPS     _AT             ; R1 = XRP
+8729 15 10 88                                                 LDA     R1.0            ; SP = R1
+872C 16 06 88                                                 STA     RP.0            ; :
+872F 15 11 88                                                 LDA     R1.1            ; :
+8732 16 07 88                                                 STA     RP.1            ; :
+8735 14 8D 83                                                 JPA     NEXT            ; Done
+                                                      
+8738 82 3B D3                                         HSEMIS: DB      ^2 ";" ^'S'                             ; ***** ;S
+873B 16 87                                                    DW      HRPSTO
+873D 1D 06 88                                         SEMIS:  LDR     RP              ; IP = (RP)+
+8740 16 00 88                                                 STA     IP.0            ; :
+8743 2E 06 88                                                 INW     RP              ; :
+8746 1D 06 88                                                 LDR     RP              ; :
+8749 16 01 88                                                 STA     IP.1            ; :
+874C 2E 06 88                                                 INW     RP              ; :
+874F 14 8D 83                                                 JPA     NEXT            ; Done
+                                                      
+8752 85 4C 45 41 56 C5                                HLEAVE: DB      ^5 "LEAV" ^'E'                          ; ***** LEAVE
+8758 38 87                                                    DW      HSEMIS
+875A 5C 87                                            LEAVE:  DW      LEAVE0
+875C 38 17 81                                         LEAVE0: JPS     _RPOP1          ; 2(RP) = (RP)
+875F 38 C4 81                                                 JPS     _RPUT1          ; :
+8762 38 CB 81                                                 JPS     _RPUSH1         ; :
+8765 14 8D 83                                                 JPA     NEXT
+                                                      
+8768 82 3E D2                                         HTOR:   DB      ^2 ">" ^'R'                             ; ***** >R
+876B 52 87                                                    DW      HLEAVE
+876D 6F 87                                            TOR:    DW      TOR0
+876F 38 73 80                                         TOR0:   JPS     _POP1           ; -(RP) = (SP)+
+8772 38 CB 81                                                 JPS     _RPUSH1         ; :
+8775 14 8D 83                                                 JPA     NEXT
+                                                      
+8778 82 52 BE                                         HFROMR: DB      ^2 "R" ^'>'                             ; ***** R>
+877B 68 87                                                    DW      HTOR
+877D 7F 87                                            FROMR:  DW      FROMR0
+877F 38 17 81                                         FROMR0: JPS     _RPOP1          ; -(SP) = (RP)+
+8782 38 71 81                                                 JPS     _PUSH1          ; :
+8785 14 8D 83                                                 JPA     NEXT
+                                                      
+8788 81 D2                                            HR:     DB      ^1 ^'R'                                 ; ***** R
+878A 78 87                                                    DW      HFROMR
+878C 8E 87                                            R:      DW      R0
+878E 38 10 81                                         R0:     JPS     _RGET1          ; -(SP) = (RP)
+8791 38 71 81                                                 JPS     _PUSH1          ; :
+8794 14 8D 83                                                 JPA     NEXT
+                                                      
+8797 82 30 BD                                         HZEQU:  DB      ^2 "0" ^'='                             ; ***** 0=
+879A 88 87                                                    DW      HR
+879C 9E 87                                            ZEQU:   DW      ZEQU0
+879E 1D 04 88                                         ZEQU0:  LDR     SP              ; Get low byte
+87A1 11 00                                                    CPI     0               ; Is it zero?
+87A3 3A B7 87                                                 BNE     ZEQU10          ; NO: Return FALSE
+87A6 2E 04 88                                                 INW     SP              ; YES: Have to inspect
+87A9 1D 04 88                                                 LDR     SP              ; : high byte as well
+87AC 11 00                                                    CPI     0               ; Is it zero?
+87AE 3A BA 87                                                 BNE     ZEQU20          ; NO: Return FALSE
+87B1 2E 04 88                                                 INW     SP              ; Make POP complete
+87B4 14 B4 83                                                 JPA     PUSHT           ; YES: Return TRUE
+87B7 2E 04 88                                         ZEQU10: INW     SP              ; POP argument off dstack
+87BA 2E 04 88                                         ZEQU20: INW     SP              ; : Make POP complete
+87BD 14 C0 83                                                 JPA     PUSHF           ; Return FALSE
+                                                      
+87C0 82 30 BC                                         HZLESS: DB      ^2 "0" ^'<'                             ; ***** 0<
+87C3 97 87                                                    DW      HZEQU
+87C5 C7 87                                            ZLESS:  DW      ZLESS0
+87C7 2E 04 88                                         ZLESS0: INW     SP              ; Inspect high byte only
+87CA 1D 04 88                                                 LDR     SP              ; Get high byte
+87CD 11 00                                                    CPI     0               ; Is high byte negative?
+87CF 3F D8 87                                                 BMI     ZLES10          ; YES: Return TRUE
+87D2 2E 04 88                                                 INW     SP              ; NO: POP high byte also
+87D5 14 C0 83                                                 JPA     PUSHF           ; Return FALSE
+87D8 2E 04 88                                         ZLES10: INW     SP              ; POP high byte also
+87DB 14 B4 83                                                 JPA     PUSHT           ; Return TRUE
+                                                      
+87DE 81 AB                                            HPLUS:  DB      ^1 ^'+'                                 ; ***** +
+87E0 C0 87                                                    DW      HZLESS
+87E2 E4 87                                            PLUS:   DW      PLUS0
+87E4 38 B6 80                                         PLUS0:  JPS     _POP2           ; Get second operand
+87E7 38 73 80                                                 JPS     _POP1           ; Get first operand
+87EA 38 0E 82                                                 JPS     _ADD16          ; R1 = R1 + R2
+87ED 14 7B 83                                                 JPA     PUSH            ; -(SP) = R1; NEXT
+                                                      
+87F0 82 44 AB                                         HDPLUS: DB      ^2 "D" ^'+'                             ; ***** D+
+87F3 DE 87                                                    DW      HPLUS
+87F5 F7 87                                            DPLUS:  DW      DPLUS0
+87F7 38 BD 80                                         DPLUS0: JPS     _DPOP2          ; Get second operand
+87FA 38 7A 80                                                 JPS     _DPOP1          ; Get first operand
+87FD 38 1B 82                                                 JPS     _ADD32          ; R1X = R1X + R2X
+8800 00 00 00                                                 JPA     DPUSH           ; -(SP) = R1X; NEXT
+                                                      
+8803 00 00 00 00 00 00                                HMINUS: DB      ^5 "MINU" ^'S'                          ; ***** MINUS
+8809 00 87                                                    DW      HDPLUS
+880B 0D 88                                            MINUS:  DW      MINUS0
+880D 38 73 80                                         MINUS0: JPS     _POP1           ; Get operand
+8810 00 00 00                                                 JPS     _NEG16          ; Negate
+8813 00 00 00                                                 JPA     PUSH
+                                                      
+8816 00 00 00 00 00 00 D3                             HDMINU: DB      ^6 "DMINU" ^'S'                         ; ***** DMINUS
+881D 03 88                                                    DW      HMINUS
+881F 21 00                                            DMINU:  DW      DMINU0
+8821 00 00 00                                         DMINU0: JPS     _DPOP1          ; Get operand
+8824 00 00 00                                                 JPS     _NEG32          ; Negate
+8827 00 00 00                                                 JPA     DPUSH
+                                                      
+882A 00 00 00 00 00                                   HOVER:  DB      ^4 "OVE" ^'R'                           ; **** OVER
+882F 00 00                                                    DW      HDMINU
+8831 00 00                                            OVER:   DW      OVER0
+8833 00 00 00                                         OVER0:  JPS     _POP2           ; n1 n2 -- n1 n2 n1
+8836 00 00 00                                                 JPS     _GET1           ; :
+8839 00 00 00                                                 JPS     _PUSH2          ; :
+883C 00 00 00                                                 JPA     PUSH            ; :
+                                                      
+883F 00 00 00 4F D0                                   HDROP:  DB      ^4 "DRO" ^'P'                           ; **** DROP
+8844 2A 88                                                    DW      HOVER
+8846 48 88                                            DROP:   DW      DROP0
+8848 2E 04 88                                         DROP0:  INW     SP              ; n1 --
+884B 2E 04 88                                                 INW     SP              ; :
+884E 14 8D 83                                                 JPA     NEXT            ; Done
+                                                      
+8851 84 53 57 41 D0                                   HSWAP:  DB      ^4 "SWA" ^'P'                           ; **** SWAP
+8856 3F 88                                                    DW      HDROP
+8858 33 88                                            SWAP:   DW      OVER0
+885A 38 B6 80                                         SWAP0:  JPS     _POP2           ; n1 n2 -- n2 n1
+885D 38 73 80                                                 JPS     _POP1           ; :
+8860 38 8F 81                                                 JPS     _PUSH2          ; :
+8863 14 7B 83                                                 JPA     PUSH            ; :
+                                                      
+8866 83 44 55 D0                                      HDUP:   DB      ^3 "DU" ^'P'                            ; **** DUP
+886A 51 88                                                    DW      HSWAP
+886C 6E 88                                            DUP:    DW      DUP0
+886E 38 6C 80                                         DUP0:   JPS     _GET1           ; n1 -- n1 n1
+8871 14 7B 83                                                 JPA     PUSH            ; :
+                                                      
+8874 82 2B A1                                         HPSTOR: DB      ^2 "+" ^'!'                             ; ***** +!
+8877 66 88                                                    DW      HDUP
+8879 7A                                               PSTOR:  DB      PSTOR0
+887A 38 F9 80                                         PSTOR0: JPS     _POP3           ; R3 = addr
+887D 38 B6 80                                                 JPS     _POP2           ; R2 = incr
+8880 38 34 82                                                 JPS     _LD16           ; R1 = (R3)
+8883 38 0E 82                                                 JPS     _ADD16          ; R1 = R1 + R2
+8886 38 47 82                                                 JPS     _ST16           ; (R3) = R1
+8889 14 8D 83                                                 JPA     NEXT            ; Done
+                                                      
+888C 86 54 4F 47 47 4C C5                             HTOGGL: DB      ^6 "TOGGL" ^'E'                         ; ***** TOGGLE
+8893 74 88                                                    DW      HPSTOR
+8895 97 88                                            TOGGL:  DW      TOGGL0
+8897 38 B6 80                                         TOGGL0: JPS     _POP2           ; R2 = bit mask
+889A 38 F9 80                                                 JPS     _POP3           ; R3 = addr
+889D 38 34 82                                                 JPS     _LD16           ; R1 = (R3)
+88A0 38 00 00                                                 JPS     _XOR16          ; R1 = R1 ^ R2
+88A3 38 47 82                                                 JPS     _ST16           ; (R3) = R1
+88A6 14 8D 83                                                 JPA     NEXT            ; Done
                                                       
                                                       ; INCLUDE         coldwarm.asm
                                                       
                                                       ; ----------------------------------------------------------------------
                                                       ; COLD AND WARM START ENTRY POINTS
                                                       
-85F0 0E FE                                            CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
-85F2 16 FF FF                                                 STA     0xFFFF          ; :
-85F5 0E 30                                                    LDI     <XSP            ; Initialize FORTH SP
-85F7 16 04 88                                                 STA     SP.0            ; :
-85FA 0E 88                                                    LDI     >XSP            ; :
-85FC 16 05 88                                                 STA     SP.1            ; :
-85FF 0E 0C                                                    LDI     <TEST           ; Initialize FORTH IP
-8601 16 00 88                                                 STA     IP.0            ; :
-8604 0E 86                                                    LDI     >TEST           ; :
-8606 16 01 88                                                 STA     IP.1            ; :
-8609 14 43 83                                                 JPA     NEXT            ; ... and over to FORTH VM
+88A9 0E FE                                            CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
+88AB 16 FF FF                                                 STA     0xFFFF          ; :
+88AE 0E 30                                                    LDI     <XSP            ; Initialize FORTH SP
+88B0 16 04 88                                                 STA     SP.0            ; :
+88B3 0E 88                                                    LDI     >XSP            ; :
+88B5 16 05 88                                                 STA     SP.1            ; :
+88B8 0E C5                                                    LDI     <TEST           ; Initialize FORTH IP
+88BA 16 00 88                                                 STA     IP.0            ; :
+88BD 0E 88                                                    LDI     >TEST           ; :
+88BF 16 01 88                                                 STA     IP.1            ; :
+88C2 14 8D 83                                                 JPA     NEXT            ; ... and over to FORTH VM
                                                       
-860C 85 83 19 86 85 83 20 00 44 85 1A 83              TEST:   DW      LIT STRING LIT 32 ENCL _HALT
+88C5 CF 83 D2 88 CF 83 20 00 8E 85 40 83              TEST:   DW      LIT STRING LIT 32 ENCL _HALT
                                                       
-8618 00                                               WENT:   NOP
+88D1 00                                               WENT:   NOP
                                                       
-8619 20 20 54 4F 4B 45 4E 00 20 20 00                 STRING: DB      32 32 "TOKEN" 0 32 32 0
+88D2 20 20 54 4F 4B 45 4E 00 20 20 00                 STRING: DB      32 32 "TOKEN" 0 32 32 0
                                                       
                                                               ORG     0x8800
                                                       

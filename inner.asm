@@ -1,13 +1,13 @@
 ; ----------------------------------------------------------------------
 ; INNER INTERPRETER
 
-DPUSH:  DEW     SP              ; -(SP) = BC
+DPUSH:  DEW     SP              ; -(SP) = R1X
         LDA     R1.3
         STR     SP
         DEW     SP
         LDA     R1.2
         STR     SP
-PUSH:   DEW     SP              ; -(SP) = DE
+PUSH:   DEW     SP              ; -(SP) = R1
         LDA     R1.1
         STR     SP
         DEW     SP

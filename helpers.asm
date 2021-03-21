@@ -373,9 +373,31 @@ _ADD32: LDA     R2.0
         RTS
 
 ; ------------------------------
+;       R1 = (R3)
+
+_LD16:  LDR     R3
+        STA     R1.0
+        INW     R3
+        LDR     R3
+        STA     R1.1
+        DEW     R3
+        RTS
+
+; ------------------------------
+;       (R3) = R1
+
+_ST16:  LDA     R1.0
+        STR     R3
+        INW     R3
+        LDA     R1.1
+        STR     R3
+        DEW     R3
+        RTS
+
+; ------------------------------
 ;       R10 = R10 & R20
 
-AND:    LDI     8               ; Load bit counter
+AND8:   LDI     8               ; Load bit counter
         STA     R3              ; :
 AND10:  LDA     R2              ; Load second operand
         LSL                     ; Shift 2b7 into C
@@ -396,7 +418,7 @@ AND20:  ROL                     ; Shift C into result
 ; ------------------------------
 ;       R10 = R10 | R20
 
-OR:     LDI     8               ; Load bit counter
+OR8:    LDI     8               ; Load bit counter
         STA     R3              ; :
 OR10:   LDA     R2              ; Load second operand
         LSL                     ; Shift 2b7 into C
@@ -417,7 +439,7 @@ OR20:   ROL                     ; Shift C into result
 ; ------------------------------
 ;       R10 = R10 ^ R20
 
-XOR:    LDI     8               ; Load bit counter
+XOR8:   LDI     8               ; Load bit counter
         STA     R3              ; :
 XOR10:  LDA     R2              ; Get second operand
         LSL                     ; Shift b7 into C
@@ -511,4 +533,28 @@ _AT:    LDR     R1              ; Get LSB
 
 _HALT:  DW      _HALT0
 _HALT0: JPA     _HALT0
+
+; ------------------------------
+;       +ORIGIN
+; NOTE: Index number in R2
+
+_PORIG: LDI     <ORIGIN         ; R1 = ORIGIN address
+        STA     R1.0            ; :
+        LDI     >ORIGIN         ; :
+        STA     R1.1            ; :
+        LDA     R2.0            ; Get index number
+        ADW     R1              ; Compute addr
+        RTS                     ; Done
+
+; ------------------------------
+;       _USER
+; NOTE: Index number in R2
+
+_USER:  LDA     UP.0            ; R1 = UP
+        STA     R1.0            ; :
+        LDA     UP.1            ; :
+        STA     R1.1            ; :
+        LDA     R2.0            ; Get index number
+        ADW     R1              ; Compute addr
+        RTS                     ; Done
 
