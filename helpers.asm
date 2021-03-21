@@ -135,6 +135,14 @@ _POP3:  JPS     _GET3_
         RTS
 
 ; ------------------------------
+;       R2 = (SP)+
+;       R1 = (SP)+
+
+_POP21: JPS     _POP2
+        JPS     _POP1
+        RTS
+
+; ------------------------------
 ;       R1 = (RP) "half function"
 
 _RGET1_: LDR    RP
@@ -652,4 +660,51 @@ _UMU20: LDA     R2.0            ; R2X = R2X << 1
 
         DEB     BC
         BNE     _UMU10
+        RTS
+
+; ------------------------------
+;       R1X / R2L
+;       R1H: Quotient
+;       R1L: Remainder
+
+_UDIV:  LDI     16              ; Set bit counter
+        STA     BC              ; :
+        
+_UDI10: LDA     R1.0            ; R1X = R1X << 1
+        LSL                     ; :
+        STA     R1.0            ; :
+        LDA     R1.1            ; :
+        ROL                     ; :
+        STA     R1.1            ; :
+        LDA     R1.2            ; :
+        ROL                     ; :
+        STA     R1.2            ; :
+        LDA     R1.3            ; :
+        ROL                     ; :
+        STA     R1.3            ; :
+
+        LDA     R1.2            ; R3H = R1H
+        STA     R3.2            ; :
+        LDA     R1.3            ; :
+        STA     R3.3            ; :
+        
+        LDA     R3.2            ; R3H = R3H - R2L
+        SBA     R2.0            ; :
+        STA     R3.2            ; :
+        LDA     R3.3            ; :
+        SCA     R2.1            ; :
+        STA     R3.3            ; :
+        
+        BCC     _UDI20
+        
+        LDA     R3.2            ; R1H = R3H
+        STA     R1.2            ; :
+        LDA     R3.3            ; :
+        STA     R1.3            ; :
+        
+        INW     R1.0            ; R1L++
+        
+_UDI20: DEB     BC              ; All bits done?
+        BNE     _UDI10          ; NO: Loop again
+        
         RTS

@@ -85,10 +85,10 @@ XLOOP0: CLW     R1              ; Push a one
 HXDO:   DB      ^4 "(DO" ^')'                           ; ***** (DO)
         DW      HXLOOP
 XDO:    DW      XDO0
-XDO0:   JPS     _POP1           ; Loop counter
-        JPS     _POP2           ; Limit
-        JPS     _RPUSH2         ; Push limit onto rstack
-        JPS     _RPUSH1         ; Push loop counter onto rstack
+XDO0:   JPS     _POP2           ; Loop counter
+        JPS     _POP1           ; Limit
+        JPS     _RPUSH1         ; Push limit onto rstack
+        JPS     _RPUSH2         ; Push loop counter onto rstack
         JPA     NEXT
 
 HI:     DB      ^1 ^'I'                                 ; ***** I
@@ -101,8 +101,7 @@ I0:     JPS     _RGET1          ; Get loop counter
 HDIGIT: DB      ^5 "DIGI" ^'T'                          ; ***** DIGIT
         DW      HI
 DIGIT:  DW      DIGIT0
-DIGIT0: JPS     _POP2           ; Get base into R2.0
-        JPS     _POP1           ; Get character into R1.0
+DIGIT0: JPS     _POP21          ; R2 = base, R1 = char
         LDA     R1.0            ; Get character into A
         SBI     '0'             ; Assume '0' - '9'
         BMI     DIGI88          ; Oops! Negative
@@ -253,9 +252,8 @@ CR0:    LDI     CH_LF           ; Output a linefeed ...
 HCMOVE: DB      ^5 "CMOV" ^'E'                          ; ***** CMOVE
         DW      HCR
 CMOVE:  DW      CMOVE0
-CMOVE0: JPS     _POP3           ; count
-        JPS     _POP2           ; destination
-        JPS     _POP1           ; source
+CMOVE0: JPS     _POP3           ; R3 = count
+        JPS     _POP21          ; R2 = dst, R1 = src
 CMOV10: LDR     R1              ; Get byte from source
         STR     R2              ; Store to destination
         INW     R1              ; Bump source pointer
@@ -268,45 +266,40 @@ CMOV20: JPA     NEXT            ; Done
 HUSTAR: DB      ^2 "U" ^'*'                             ; ***** U*
         DW      HCMOVE
 USTAR:  DW      USTAR0
-USTAR0: JPS     _POP2           ; Get second operand
-        JPS     _POP1           ; Get first operand
+USTAR0: JPS     _POP21          ; R2 = oper2, R1 = oper1
         JPS     _UMULT          ; u32 = u16 * u16
         JPA     DPUSH           ; Done
 
 HUSLAS: DB      ^2 "U" ^'/'                             ; ***** U/
         DW      HUSTAR
 USLAS:  DW      USLAS0
-USLAS0: JPS     _POP2           ; divisor
-        JPS     _POP1           ; dividend, high 16b
+USLAS0: JPS     _POP21          ; R2 = divisor, R1 = dividend-hi
         LDA     R1.0            ; Move high part to R1.2 and R1.3
         STA     R1.2            ; :
         LDA     R1.1            ; :
         STA     R1.3            ; :
         JPS     _POP1           ; dividend, low 16b
         JPS     _UDIV           ; u32 / u16 --> quot_u16, rem_u16
-        JPA     DPUSH           ; Done
+        JPA     IPUSH           ; Push R1H; Push R1L; NEXT
 
 HAND:   DB      ^3 "AN" ^'D'                            ; ***** AND
         DW      HUSLAS
 AND:    DW      AND0
-AND0:   JPS     _POP2           ; Get second operand
-        JPS     _POP1           ; Get first operand
+AND0:   JPS     _POP21          ; R2 = oper2, R1 = oper1
         JPS     _AND16          ; R1 = R1 & R2
         JPA     PUSH            ; Done
 
 HOR:    DB      ^2 "O" ^'R'                             ; ***** OR
         DW      HAND
 OR:     DW      OR0
-OR0:    JPS     _POP2           ; Get second operand
-        JPS     _POP1           ; Get first operand
+OR0:    JPS     _POP21          ; R2 = oper2, R1 = oper1
         JPS     _OR16           ; R1 = R1 | R2
         JPA     PUSH            ; Done
 
 HXOR:   DB      ^3 "XO" ^'R'                            ; ***** XOR
         DW      HOR
 XOR:    DW      XOR0
-XOR0:   JPS     _POP2           ; Get second operand
-        JPS     _POP1           ; Get first operand
+XOR0:   JPS     _POP21          ; R2 = oper2, R1 = oper1
         JPS     _XOR16          ; R1 = R1 ^ R2
         JPA     PUSH            ; Done
 
@@ -374,15 +367,13 @@ HFROMR: DB      ^2 "R" ^'>'                             ; ***** R>
         DW      HTOR
 FROMR:  DW      FROMR0
 FROMR0: JPS     _RPOP1          ; -(SP) = (RP)+
-        JPS     _PUSH1          ; :
-        JPA     NEXT
+        JPA     PUSH            ; :
 
 HR:     DB      ^1 ^'R'                                 ; ***** R
         DW      HFROMR
 R:      DW      R0
 R0:     JPS     _RGET1          ; -(SP) = (RP)
-        JPS     _PUSH1          ; :
-        JPA     NEXT
+        JPA     PUSH            ; :
 
 HZEQU:  DB      ^2 "0" ^'='                             ; ***** 0=
         DW      HR
@@ -415,8 +406,7 @@ ZLES10: INW     SP              ; POP high byte also
 HPLUS:  DB      ^1 ^'+'                                 ; ***** +
         DW      HZLESS
 PLUS:   DW      PLUS0
-PLUS0:  JPS     _POP2           ; Get second operand
-        JPS     _POP1           ; Get first operand
+PLUS0:  JPS     _POP21          ; R2 = oper2, R1 = oper1
         JPS     _ADD16          ; R1 = R1 + R2
         JPA     PUSH            ; -(SP) = R1; NEXT
 
@@ -460,8 +450,7 @@ DROP0:  INW     SP              ; n1 --
 HSWAP:  DB      ^4 "SWA" ^'P'                           ; **** SWAP
         DW      HDROP
 SWAP:   DW      OVER0
-SWAP0:  JPS     _POP2           ; n1 n2 -- n2 n1
-        JPS     _POP1           ; :
+SWAP0:  JPS     _POP21          ; n1 n2 -- n2 n1
         JPS     _PUSH2          ; :
         JPA     PUSH            ; :
 

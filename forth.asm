@@ -18,4 +18,5 @@ INCLUDE         boot-table.asm
 INCLUDE         helpers.asm
 INCLUDE         inner.asm
 INCLUDE         primaries.asm
+INCLUDE         precompiled.asm
 INCLUDE         coldwarm.asm

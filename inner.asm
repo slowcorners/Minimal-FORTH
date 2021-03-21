@@ -1,7 +1,13 @@
 ; ----------------------------------------------------------------------
 ; INNER INTERPRETER
 
-PUSH:   DEW     SP              ; -(SP) = R1
+IPUSH:  DEW     SP              ; -(SP) = R1H
+        LDA     R1.3
+        STR     SP
+        DEW     SP
+        LDA     R1.2
+        STR     SP
+PUSH:   DEW     SP              ; -(SP) = R1L
         LDA     R1.1
         STR     SP
         DEW     SP
@@ -34,8 +40,7 @@ PUSHF:  CLW     R1              ; A zero
 ; ------------------------------
 ;       Push R1X, MSB as TOS
 
-DPUSH:
-        DEW     SP              ; -(SP) = R1X
+DPUSH:  DEW     SP              ; -(SP) = R1X
         LDA     R1.1
         STR     SP
         DEW     SP

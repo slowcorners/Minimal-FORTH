@@ -13,7 +13,7 @@ CENT:   LDI     0xFE            ; Initialize Minimal stack pointer
         STA     IP.1            ; :
         JPA     NEXT            ; ... and over to FORTH VM
 
-TEST:   DW      LIT 0x3344 LIT 0x5566 USTAR _HALT
+TEST:   DW      LIT 0x2233 LIT 0x0011 LIT 0x100 USLAS _HALT
 
 WENT:   NOP
 
