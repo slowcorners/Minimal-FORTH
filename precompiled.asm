@@ -255,3 +255,304 @@ DDUP:   DW      DOCOL DUP ZBRAN +DDU10
         DW      DUP
 DDU10:  DW      SEMIS
 
+HTRAV:  DB      ^8 "TRAVERS" ^'E'                       ; ***** TRAVERSE
+        DW      HDDUP
+TRAV:   DW      DOCOL SWAP
+TRAV10: DW      OVER PLUS LIT 0xFF
+        DW      OVER CAT LESS BRAN +TRAV10
+        DW      SWAP DROP SEMIS
+
+HLATES: DB      ^6 "LATES" ^'T'                         ; ***** LATEST
+        DW      HTRAV
+LATES:  DW      DOCOL CURR AT AT SEMIS
+
+HLFA:   DB      ^3 "LF" ^'A'                            ; ***** LFA
+        DW      HLATES
+LFA:    DW      DOCOL LIT 4 SUB SEMIS
+
+HCFA:   DB      ^3 "CF" ^'A'                            ; ***** CFA
+        DW      HLFA
+CFA:    DW      DOCOL TWO SUB SEMIS
+
+HNFA:   DB      ^3 "NF" ^'A'                            ; ***** NFA
+        DW      HCFA
+NFA:    DW      DOCOL LIT 5 SUB LIT -1 TRAV SEMIS
+
+HPFA:   DB      ^3 "PF" ^'A'                            ; ***** PFA
+        DW      HNFA
+PFA:    DW      DOCOL ONE TRAV LIT 5 PLUS SEMIS
+
+; ------------------------------
+; COMPILE TIME CHECKS
+
+HSCSP:  DB      ^4 "!CS" ^'P'                           ; ***** !CSP
+        DW      HPFA
+SCSP:   DW      DOCOL SPAT CSP STORE SEMIS
+
+HQERR:  DB      ^6 "?ERRO" ^'R'                         ; ***** ?ERROR
+        DW      HSCSP
+QERR:   DW      DOCOL SWAP ZBRAN +QERR10
+        DW      ERROR BRAN +QERR20
+QERR10: DW      DROP
+QERR20: DW      SEMIS
+
+HQCOMP: DB      ^5 "?COM" ^'P'                          ; ***** ?COMP
+        DW      HQERR
+QCOMP:  DW      DOCOL STATE AT ZEQU LIT 17 QERR SEMIS
+
+HQEXEC: DB      ^5 "?EXE" ^'C'                          ; ***** ?EXEC
+        DW      HQCOMP
+QEXEC:  DW      DOCOL STATE AT LIT 18 QERR SEMIS
+
+HQPAIR: DB      ^6 "?PAIR" ^'S'                         ; ***** ?PAIRS
+        DW      HQEXEC
+QPAIR:  DW      DOCOL SUB LIT 19 QERR SEMIS
+
+HQCSP:  DB      ^4 "?CS" ^'P'                           ; ***** ?CSP
+        DW      HQPAIR
+QCSP:   DW      DOCOL SPAT CSP AT SUB
+        DW      LIT 20 QERR SEMIS
+
+HQLOAD: DB      ^8 "?LOADIN" ^'G'                       ; ***** ?LOADING
+        DW      HQCSP
+QLOAD:  DW      DOCOL BLK AT ZEQU LIT 22 QERR SEMIS
+
+; ------------------------------
+; COMPILER WORDS
+
+HCOMP:  DB      ^7 "COMPIL" ^'E'                        ; ***** COMPILE
+        DW      HQLOAD
+COMP:   DW      DOCOL QCOMP FROMR DUP
+        DW      TWOP TOR AT COMMA SEMIS
+
+HLBRAC: DB      ^^1 ^'['                                ; ***** [
+        DW      HCOMP
+LBRAC:  DW      DOCOL ZERO STATE STORE SEMIS
+
+HRBRAC: DB      ^1 ^']'                                 ; ***** ]
+        DW      HLBRAC
+RBRAC:  DW      DOCOL LIT 0xC0 STATE STORE SEMIS
+
+HSMUDG: DB      ^6 "SMUDG" ^'E'                         ; ***** SMUDGE
+        DW      HRBRAC
+SMUDG:  DW      DOCOL LATES LIT 0x20 TOGGL SEMIS
+
+HHEX:   DB      ^3 "HE" ^'X'                            ; ***** HEX
+        DW      HSMUDG
+HEX:    DW      DOCOL LIT 16 BASE STORE SEMIS
+
+HDEC:   DB      ^7 "DECIMA" ^'L'                        ; ***** DECIMAL
+        DW      HHEX
+DEC:    DW      DOCOL LIT 10 BASE STORE SEMIS
+
+HOCTAL: DB      ^5 "OCTA" ^'L'                          ; ***** OCTAL
+        DW      HDEC
+OCTAL:  DW      DOCOL LIT 8 BASE STORE SEMIS
+
+HPSCOD: DB      ^7 "(;CODE" ^')'                        ; ***** (;CODE)
+        DW      HOCTAL
+PSCOD:  DW      DOCOL FROMR LATES PFA CFA STORE SEMIS
+
+HBUILD: DB      ^7 "<BUILD" ^'S'                        ; ***** <BUILDS
+        DW      HPSCOD
+BUILD:  DW      DOCOL ZERO CON SEMIS
+
+HDOES:  DB      ^5 "DOES" ^'>'                          ; ***** DOES>
+        DW      HBUILD
+DOES:   DW      DOCOL FROMR LATES PFA STORE PSCOD
+DODOE:  DEW     RP              ; -(RP) = IP
+        LDA     IP.1            ; :
+        STR     RP              ; :
+        DEW     RP              ; :
+        LDA     IP.0            ; :
+        STR     RP              ; :
+        LDR     WA              ; IP = (WA)+
+        STA     IP.0            ; :
+        INW     WA              ; :
+        LDR     WA              ; :
+        STA     IP.1            ; :
+        INW     WA              ; :
+        DEW     SP              ; -(SP) = WA
+        LDA     WA.1            ; :
+        STR     SP              ; :
+        DEW     SP              ; :
+        LDA     WA.0            ; :
+        STR     SP              ; :
+        JPA     NEXT            ; Done
+
+; ------------------------------
+; MISC WORDS RELATED TO PRINTING
+
+HCOUNT: DB      ^5 "COUN" ^'T'                          ; ***** COUNT
+        DW      HDOES
+COUNT:  DW      DOCOL DUP ONEP SWAP CAT SEMIS
+
+HTYPE:  DB      ^4 "TYP" ^'E'                           ; ***** TYPE
+        DW      HCOUNT
+TYPE:   DW      DOCOL DDUP ZBRAN +TYPE20
+        DW      OVER PLUS SWAP XDO
+TYPE10: DW      I CAT EMIT XLOOP +TYPE10
+        DW      BRAN +TYPE30
+TYPE20: DW      DROP
+TYPE30: DW      SEMIS
+
+HDTRAI: DB      ^9 "-TRAILIN" ^'G'                      ; ***** -TRAILING
+        DW      HTYPE
+DTRAI:  DW      DOCOL DUP ZERO XDO
+DTRA10: DW      OVER OVER PLUS ONE SUB
+        DW      CAT BL SUB ZBRAN +DTRA20
+        DW      LEAVE BRAN +DTRA30
+DTRA20: DW      ONE SUB
+DTRA30: DW      XLOOP +DTRA10
+        DW      SEMIS
+
+HPDOTQ: DB      ^4 "(." '"' ^')'                        ; ***** (.")
+        DW      HDTRAI
+PDOTQ:  DW      DOCOL R COUNT DUP ONEP
+        DW      FROMR PLUS TOR TYPE SEMIS
+
+HDOTQ:  DB      ^^2 "." ^'"'                            ; ***** ."
+        DW      HPDOTQ
+DOTQ:   DW      DOCOL LIT '"' STATE AT ZBRAN +DOTQ10
+        DW      COMP PDOTQ WORD HERE CAT ONEP
+        DW      ALLOT BRAN +DOTQ20
+DOTQ10: DW      WORD HERE COUNT TYPE
+DOTQ20: DW      SEMIS
+
+; ------------------------------
+; OUTER INTERPRETER
+
+HEXPEC: DB      ^6 "EXPEC" ^'T'                         ; ***** EXPECT
+        DW      HDOTQ
+EXPECT: DW      DOCOL OVER PLUS OVER XDO
+EXPE10: DW      KEY DUP LIT 14 PORIG
+        DW      AT EQUAL ZBRAN +EXPE20
+        DW      DROP LIT 8 OVER I EQUAL DUP FROMR
+        DW      TWO SUB PLUS TOR SUB BRAN +EXPE50
+EXPE20: DW      DUP LIT 13 EQUAL ZBRAN +EXPE30
+        DW      LEAVE DROP BL ZERO BRAN +EXPE40
+EXPE30: DW      DUP
+EXPE40: DW      I CSTOR ZERO I ONEP STORE
+EXPE50: DW      EMIT XLOOP +EXPE10
+        DW      DROP SEMIS
+
+HQUERY: DB      ^6 "QUER" ^'Y'                          ; ***** QUERY
+        DW      HEXPEC
+QUERY:  DW      DOCOL TIB AT LIT 80 EXPEC
+        DW      ZERO IN STORE SEMIS
+
+HNULL:  DB      ^^1 ^0                                  ; ***** <the NULL word>
+        DW      HQUERY
+NULL:   DW      DOCOL BLK AT ZBRAN +NULL20
+        DW      ONE BLK PSTOR ZERO IN STORE
+        DW      BLK AT BSCR MOD ZEQU ZBRAN +NULL10
+        DW      QEXEC FROMR DROP
+NULL10: DW      BRAN +NULL30
+NULL20: DW      FROMR DROP
+NULL30: DW      SEMIS
+
+HFILL:  DB      ^4 "FIL" ^'L'                           ; ***** FILL
+        DW      HNULL
+FILL:   DW      DOCOL SWAP TOR OVER CSTOR DUP
+        DW      ONEP FROMR ONE SUB CMOVE SEMIS
+
+HERASE: DB      ^5 "ERAS" ^'E'                          ; ***** ERASE
+        DW      HFILL
+ERASE:  DW      DOCOL ZERO FILL SEMIS
+
+HBLANK: DB      ^6 "BLANK" ^'S'                         ; ***** BLANKS
+        DW      HERASE
+BLANK:  DW      DOCOL BL FILL SEMIS
+
+HHOLD:  DB      ^4 "HOL" ^'D'                           ; ***** HOLD
+        DW      HBLANK
+HOLD:   DW      DOCOL LIT -1 HLD PSTOR
+        DW      HLD AT CSTOR SEMIS
+
+HPAD:   DB      ^3 "PA" ^'D'                            ; ***** PAD
+        DW      HHOLD
+PAD:    DW      DOCOL HERE LIT 84 PLUS SEMIS
+
+HWORD:  DB      ^4 "WOR" ^'D'                           ; ***** WORD
+        DW      HPAD
+WORD:   DW      DOCOL BLK AT ZBRAN +WORD10
+        DW      BLK AT BLOCK BRAN +WORD20
+WORD10: DW      TIB AT
+WORD20: DW      INAT PLUS SWAP ENCL
+        DW      HERE LIT 34 BLANK IN
+        DW      PSTOR OVER SUB TOR R HERE CSTOR PLUS
+        DW      HERE ONEP FROMR CMOVE SEMIS
+
+HPNUMB: DB      ^8 "(NUMBER" ^')'                       ; ***** (NUMBER)
+        DW      HWORD
+PNUMB:  DW      DOCOL
+PNUM10: DW      ONEP DUP TOR CAT
+        DW      BASE AT DIGIT ZBRAN +PNUM30
+        DW      SWAP BASE AT USTAR DROP ROT BASE AT
+        DW      USTAR DPLUS DPL AT ONEP ZBRAN +PNUM20
+        DW      ONE DPL PSTOR
+PNUM20: DW      FROMR BRAN +PNUM10
+PNUM30: DW      FROMR SEMIS
+
+HNUMB:  DB      ^6 "NUMBE" ^'R'                         ; ***** NUMBER
+        DW      HPNUMB
+NUMB:   DW      DOCOL ZERO ZERO ROT DUP ONEP CAT
+        DW      LIT '-' EQUAL DUP TOR PLUS LIT -1
+NUMB10: DW      DPL STORE PNUMB DUP
+        DW      CAT BL SUB ZBRAN +NUMB20
+        DW      DUP CAT LIT '.' SUB
+        DW      ZERO QERR ZERO BRAN +NUMB10
+NUMB20: DW      DROP FROMR ZBRAN +NUMB30
+        DW      DMINU
+NUMB30: DW      SEMIS
+
+HDFIND: DB      ^5 "-FIN" ^'D'                          ; ***** -FIND
+        DW      HNUMB
+DFIND:  DW      DOCOL BL WORD HERE COUNT UPPER
+        DW      HERE CONT AT AT PFIND
+        DW      DUP ZEQU ZBRAN +DFIN10
+        DW      DROP HERE LATES PFIND
+DFIN10: DW      SEMIS
+
+HUPPER: DB      ^5 "UPPE" ^'R'                          ; ***** UPPER
+        DW      HDFIND
+UPPER:  DW      DOCOL OVER PLUS SWAP XDO
+UPPE10: DW      I CAT LIT 0x60 GREAT
+        DW      I CAT LIT 0x7B LESS
+        DW      AND ZBRAN +UPPE20
+        DW      I LIT 0x20 TOGGL
+UPPE20: DW      XLOOP +UPPE10
+        DW      SEMIS
+
+HPABOR: DB      ^7 "(ABORT" ^')'                        ; ***** (ABORT)
+        DW      HUPPER
+PABOR:  DW      DOCOL ABORT SEMIS
+
+HERROR: DB      ^5 "ERRO" ^'R'                          ; ***** ERROR
+        DW      HPABOR
+ERROR:  DW      DOCOL WARN AT ZLESS ZBRAN +ERRO10
+        DW      PABOR
+ERRO10: DW      HERE COUNT TYPE PDOTQ
+        DB      3 32 '?' 32
+        DW      MESS SPSTO IN AT BLK AT QUIT SEMIS
+
+HIDDOT: DB      ^3 "ID" ^'.'                            ; ***** ID.
+        DW      HERROR
+IDDOT:  DW      DOCOL PAD BL LIT 95 FILL
+        DW      DUP PFA LFA OVER SUB PAD SWAP CMOVE
+        DW      PAD COUNT LIT 31 AND TYPE SPACE SEMIS
+
+HCREAT: DB      ^6 "CREAT" ^'E'                         ; ***** CREATE
+        DW      HIDDOT
+CREAT:  DW      DOCOL DFIND ZBRAN +CREA10
+        DW      DROP NFA IDDOT LIT 4 MESS SPACE
+CREA10: DW      HERE DUP CAT WIDTH AT MIN ONEP ALLOT
+        DW      DUP LIT 0xA0 TOGGL HERE ONE SUB
+        DW      LIT 0x80 TOGGL LATES COMMA CURR AT STORE
+        DW      HERE TWOP COMMA SEMIS
+
+HBCOMP: DB      ^^9 "[COMPILE" ^']'                     ; ***** [COMPLIE]
+        DW      HCREAT
+BCOMP:  DW      DOCOL DFIND ZEQU ZERO QERR
+        DW      DROP CFA COMMA SEMIS
+

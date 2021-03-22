@@ -307,7 +307,7 @@ _RPUT1: INW     RP
 ;       -(RP) = R1
 
 _RPUSH1: DEW    RP
-        JPS     _PUT1_
+        JPS     _RPUT1_
         RTS
 
 ; ------------------------------

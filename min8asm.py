@@ -159,6 +159,7 @@ def defineSym(name, value = loco):
 def depositValue(txt, size):
     highbit = 0x00
     nsb = None
+    neg = False
     if txt[0] == '<':
         nsb = 'LSB'
         txt = txt[1:]
@@ -171,12 +172,18 @@ def depositValue(txt, size):
     if txt[0] == '^':
         highbit |= 0x40
         txt = txt[1:]
+    if txt[0] == '-':
+        neg = True
+        txt = txt[1:]
     if txt[0] == "'":
         value = ord(txt[1])
         dv(value | highbit, size)
     # Allow for decimal, hex, octal and binary constants
     elif txt[0:2] == '0x' or txt[0:2] == '0o' or txt[0:2] == '0b' or txt.isnumeric():
-        dv(int(txt, 0) | highbit, size)
+        if neg:
+            dv(-int(txt, 0) | highbit, size)
+        else:
+            dv(int(txt, 0) | highbit, size)
     elif txt[0] == '"':
         txt = txt[1:-1]
         while len(txt):

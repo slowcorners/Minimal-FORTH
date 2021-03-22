@@ -85,8 +85,7 @@ XLOOP0: CLW     R1              ; Push a one
 HXDO:   DB      ^4 "(DO" ^')'                           ; ***** (DO)
         DW      HXLOOP
 XDO:    DW      XDO0
-XDO0:   JPS     _POP2           ; Loop counter
-        JPS     _POP1           ; Limit
+XDO0:   JPS     _POP21          ; Loop counter, limit
         JPS     _RPUSH1         ; Push limit onto rstack
         JPS     _RPUSH2         ; Push loop counter onto rstack
         JPA     NEXT
@@ -95,8 +94,7 @@ HI:     DB      ^1 ^'I'                                 ; ***** I
         DW      HXDO
 I:      DW      I0
 I0:     JPS     _RGET1          ; Get loop counter
-        JPS     _PUSH1          ; Push it onto dstack
-        JPA     NEXT
+        JPA     PUSH            ; Push it onto dstack
 
 HDIGIT: DB      ^5 "DIGI" ^'T'                          ; ***** DIGIT
         DW      HI
@@ -340,7 +338,8 @@ RPSTO0: LDI     24              ; Index of SP0
 
 HSEMIS: DB      ^2 ";" ^'S'                             ; ***** ;S
         DW      HRPSTO
-SEMIS:  LDR     RP              ; IP = (RP)+
+SEMIS:  DW      SEMIS0
+SEMIS0: LDR     RP              ; IP = (RP)+
         STA     IP.0            ; :
         INW     RP              ; :
         LDR     RP              ; :
