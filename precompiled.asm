@@ -424,7 +424,7 @@ DOTQ20: DW      SEMIS
 
 HEXPEC: DB      ^6 "EXPEC" ^'T'                         ; ***** EXPECT
         DW      HDOTQ
-EXPECT: DW      DOCOL OVER PLUS OVER XDO
+EXPEC:  DW      DOCOL OVER PLUS OVER XDO
 EXPE10: DW      KEY DUP LIT 14 PORIG
         DW      AT EQUAL ZBRAN +EXPE20
         DW      DROP LIT 8 OVER I EQUAL DUP FROMR
@@ -478,7 +478,7 @@ HWORD:  DB      ^4 "WOR" ^'D'                           ; ***** WORD
 WORD:   DW      DOCOL BLK AT ZBRAN +WORD10
         DW      BLK AT BLOCK BRAN +WORD20
 WORD10: DW      TIB AT
-WORD20: DW      INAT PLUS SWAP ENCL
+WORD20: DW      IN AT PLUS SWAP ENCL
         DW      HERE LIT 34 BLANK IN
         DW      PSTOR OVER SUB TOR R HERE CSTOR PLUS
         DW      HERE ONEP FROMR CMOVE SEMIS
@@ -551,8 +551,79 @@ CREA10: DW      HERE DUP CAT WIDTH AT MIN ONEP ALLOT
         DW      LIT 0x80 TOGGL LATES COMMA CURR AT STORE
         DW      HERE TWOP COMMA SEMIS
 
-HBCOMP: DB      ^^9 "[COMPILE" ^']'                     ; ***** [COMPLIE]
+HBCOMP: DB      ^^9 "[COMPILE" ^']'                     ; ***** [COMPILE]
         DW      HCREAT
 BCOMP:  DW      DOCOL DFIND ZEQU ZERO QERR
         DW      DROP CFA COMMA SEMIS
 
+HLITER: DB      ^^7 "LITERA" ^'L'                       ; ***** LITERAL
+        DW      HBCOMP
+LITER:  DW      DOCOL STATE AT ZBRAN +LITE10
+        DW      COMP LIT COMMA
+LITE10: DW      SEMIS
+
+HDLITE: DB      ^^8 "DLITERA" ^'L'                      ; ***** DLITERAL
+        DW      HLITER
+DLITE:  DW      DOCOL STATE AT ZBRAN +DLIT10
+        DW      SWAP LITER LITER
+DLIT10: DW      SEMIS
+
+HULESS: DB      ^2 "U" ^'<'                             ; ***** U<
+        DW      HDLITE
+ULESS:  DW      DOCOL TOR ZERO FROMR ZERO DMINU DPLUS
+        DW      SWAP DROP ZLESS SEMIS
+
+HQSTAC: DB      ^6 "?STAC" ^'K'                         ; ***** ?STACK
+        DW      HULESS
+QSTAC:  DW      DOCOL SZERO AT TWO SUB SPAT ULESS
+        DW      ONE QERR SPAT HERE LIT 128
+        DW      PLUS ULESS TWO QERR SEMIS
+
+HINTER: DB      ^9 "INTERPRE" ^'T'                      ; ***** INTERPRET
+        DW      HQSTAC
+INTER:  DW      DOCOL
+INTE10: DW      DFIND ZBRAN +INTE40
+        DW      STATE AT LESS ZBRAN +INTE20
+        DW      CFA COMMA BRAN +INTE40
+INTE20: DW      CFA EXEC
+INTE30: DW      QSTAC BRAN +INTE70
+INTE40: DW      HERE NUMB DPL AT ONEP ZBRAN +INTE50
+        DW      DLITE BRAN +INTE60
+INTE50: DW      DROP LITER
+INTE60: DW      QSTAC
+INTE70: DW      BRAN +INTE10
+
+HIMMED: DB      ^9 "IMMEDIAT" ^'E'                      ; ***** IMMEDIATE
+        DW      HINTER
+IMMED:  DW      DOCOL LATES LIT 0x40 TOGGL SEMIS
+
+HVOCAB: DB      ^10 "VOCABULAR" ^'Y'                    ; ***** VOCABULARY
+        DW      HIMMED
+VOCAB:  DW      DOCOL BUILD 0xa081 COMMA CURR AT CFA COMMA
+        DW      HERE VOCL AT COMMA VOCL STORE DOES
+DOVOC:  DW      TWOP CONT STORE SEMIS
+
+HDEFIN: DB      ^11 "DEFINITION" ^'S'                   ; ***** DEFINITIONS
+        DW      HVOCAB
+DEFIN:  DW      DOCOL CONT AT CURR STORE SEMIS
+
+HPAREN: DB      ^1 ^'('                                 ; ***** (
+        DW      HDEFIN
+PAREN:  DW      DOCOL LIT ')' WORD SEMIS
+
+HQUIT:  DB      ^4 "QUI" ^'T'                           ; ***** QUIT
+        DW      HPAREN
+QUIT:   DW      DOCOL ZERO BLK STORE LBRAC
+QUIT10: DW      RPSTO CR QUERY INTER STATE AT
+        DW      ZEQU ZBRAN +QUIT20
+        DW      PDOTQ
+        DB      3 32 "ok"
+QUIT20: DW      BRAN +QUIT10
+
+HABORT: DB      ^5 "ABOR" ^'T'                          ; ***** ABORT
+        DW      HQUIT
+ABORT:  DW      DOCOL
+ABOR10: DW      RPSTO SPSTO DEC SPACE CR PDOTQ
+        DB      19 "Minimal-FORTH"
+        DB      32 "v" 32 "0.1"
+        DW      FORTH DEFIN QUIT

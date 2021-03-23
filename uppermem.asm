@@ -1,4 +1,19 @@
 ; ----------------------------------------------------------------------
+; UPPER MEMORY AREA
+
+        ORG     0xF5B9
+
+XSP:    DB      0
+XTIB:   DB      0
+        DS      210             ; TIB:      84
+XRP:    DB      0               ; RSTACK:  128
+XUP:    DB      0
+        DS      80              ; Room for 40 variables
+DSKBF:  DB      0
+        DS      2055            ; 2 * 1028 bytes
+ENDBF:  DB      0
+
+; ----------------------------------------------------------------------
 ; THE VIRTUAL FORTH MACHINE REGISTERS
 
 IP:                             ; Instruction Pointer
@@ -44,3 +59,6 @@ R3.3:   DB      0
 
 BC:     DB      0               ; "Hidden" registers
 TMP:    DB      0               ; (used by _AND8 _OR8 _XOR8)
+
+MEMEND: DS      0
+     

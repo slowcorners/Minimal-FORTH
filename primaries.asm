@@ -247,8 +247,15 @@ CR0:    LDI     CH_LF           ; Output a linefeed ...
         OUT                     ; ... to the terminal
         JPA     NEXT            ; Done
 
-HCMOVE: DB      ^5 "CMOV" ^'E'                          ; ***** CMOVE
+HRW:    DB      ^3 "R/" ^'W'                            ; ***** R/W
         DW      HCR
+RW:     DW      RW0
+RW0:    JPS     _POP3           ; 1:read 0:write
+        JPS     _POP21          ; R2:block# R1:addr
+        JPA     NEXT
+
+HCMOVE: DB      ^5 "CMOV" ^'E'                          ; ***** CMOVE
+        DW      HRW
 CMOVE:  DW      CMOVE0
 CMOVE0: JPS     _POP3           ; R3 = count
         JPS     _POP21          ; R2 = dst, R1 = src
@@ -334,6 +341,19 @@ RPSTO0: LDI     24              ; Index of SP0
         STA     RP.0            ; :
         LDA     R1.1            ; :
         STA     RP.1            ; :
+        JPA     NEXT            ; Done
+
+HUPSTO: DB      ^3 "UP" ^'!'                            ; ***** UP!
+        DW      HRPSTO
+UPSTO:  DW      UPSTO0
+UPSTO0: LDI     16              ; Index of UP0
+        STA     R2.0            ; : in boot table
+        JPS     _PORIG          ; R1 = &bootTable[R2]
+        JPS     _AT             ; R1 = XUP
+        LDA     R1.0            ; UP = R1
+        STA     UP.0            ; :
+        LDA     R1.1            ; :
+        STA     UP.1            ; :
         JPA     NEXT            ; Done
 
 HSEMIS: DB      ^2 ";" ^'S'                             ; ***** ;S
