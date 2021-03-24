@@ -242,10 +242,7 @@ QTER10: JPA     PUSH            ; Push R1; NEXT
 
 HCR:    DB      ^2 "C" ^'R'                             ; ***** CR
         DW      HQTERM
-CR:     DW      CR0
-CR0:    LDI     CH_LF           ; Output a linefeed ...
-        OUT                     ; ... to the terminal
-        JPA     NEXT            ; Done
+CR:     DW      DOCOL LIT 13 EMIT LIT 10 EMIT SEMIS
 
 HRW:    DB      ^3 "R/" ^'W'                            ; ***** R/W
         DW      HCR
@@ -264,7 +261,7 @@ CMOV10: LDR     R1              ; Get byte from source
         INW     R1              ; Bump source pointer
         INW     R2              ; Bump destination pointer
         DEW     R3              ; Decrement count
-        BEQ     CMOV20          ; Count zero: We are done
+        BNE     CMOV20          ; Count zero: We are done
         JPA     CMOV10          ; Count non-zero: Next byte
 CMOV20: JPA     NEXT            ; Done
 
@@ -320,9 +317,9 @@ SPAT0:  LDA     SP.0            ; Get stack pointer
 HSPSTO: DB      ^3 "SP" ^'!'                            ; ***** SP!
         DW      HSPAT
 SPSTO:  DW      SPSTO0
-SPSTO0: LDI     6               ; Index of SP0
-        STA     R2.0            ; : in USER table
-        JPS     _USER           ; R1 = &USER[R2]
+SPSTO0: LDI     18              ; Index of SP0
+        STA     R2.0            ; : in boot table
+        JPS     _PORIG          ; R1 = &bootTable[R2]
         JPS     _AT             ; R1 = (R1)
         LDA     R1.0            ; SP = R1
         STA     SP.0            ; :
@@ -333,7 +330,7 @@ SPSTO0: LDI     6               ; Index of SP0
 HRPSTO: DB      ^3 "RP" ^'!'                            ; ***** RP!
         DW      HSPSTO
 RPSTO:  DW      RPSTO0
-RPSTO0: LDI     24              ; Index of SP0
+RPSTO0: LDI     20              ; Index of SP0
         STA     R2.0            ; : in boot table
         JPS     _PORIG          ; R1 = &bootTable[R2]
         JPS     _AT             ; R1 = XRP
@@ -526,8 +523,7 @@ STORE0: JPS     _POP3           ; R3 = addr
 HCSTOR: DB      ^2 "C" ^'!'                             ; ***** C!
         DW      HSTORE
 CSTOR:  DW      CSTOR0
-CSTOR0: JPS     _POP3           ; R3 = addr
-        JPS     _POP1           ; R1 = data
+CSTOR0: JPS     _POP21          ; R2 = addr, R1 = data
         LDA     R1.0            ; A = R1.0
-        STR     R3              ; (R3) = A
+        STR     R2              ; (R3) = A
         JPA     NEXT            ; Done

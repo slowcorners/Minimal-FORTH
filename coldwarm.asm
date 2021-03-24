@@ -25,7 +25,6 @@ COLD10: ; Init FORTH registers
         ; Set FORTH vocabulary
         DW      LIT 12 PORIG AT
         DW      LIT 6 LIT FORTH PLUS STORE
-        DW      _HALT
         ; Init 12 items (24 bytes) in user area ...
         ; ... with values from boot table
         DW      LIT 18 PORIG

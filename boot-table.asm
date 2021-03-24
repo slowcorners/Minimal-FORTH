@@ -11,7 +11,7 @@ ORIGIN: JPA     CENT            ;  0: COLD start
         DW      CH_DEL          ; 14: Backspace character
         DW      XUP             ; 16: Pointer to initial user area
         DW      XSP             ; 18: Initial data stack pointer
-        DW      XRP             ; 20: Initial data stack pointer
+        DW      XRP             ; 20: Initial return stack pointer
         DW      XTIB            ; 22: Pointer to terminal input buffer
         DW      31              ; 24: Maximum FORTH word name length
         DW      0               ; 26: Initial WARNING mode

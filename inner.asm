@@ -25,7 +25,11 @@ NEXT10: LDR     WA              ; R1 = (WA)+
         LDR     WA
         STA     R1.1
         INW     WA
-        JPR     R1              ; jump @(R1)
+        LDA     DBG
+        CPI     0
+        BEQ     NEXT11
+        JPS     DEBUG
+NEXT11: JPR     R1              ; jump @(R1)
 
 ; ------------------------------
 ;       Push TRUE and FALSE

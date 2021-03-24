@@ -536,8 +536,98 @@ _AT:    LDR     R1              ; Get LSB
         STA     R1.1            ; ... Store
         RTS                     ; Done
 
+; ----------------------------------------------------------------------
+; TEMP DEBUG FUNCTIONS FOR BRINGING UP THE SYSTEM
+;
+
+DBG:    DB      0
+OUTC:   DB      0
+
+_LNYB:  LDA     OUTC
+        LSL
+        LSL
+        LSL
+        LSL
+        JPA     _HNYB1
+_HNYB:  LDA     OUTC
+_HNYB1: LSR
+        LSR
+        LSR
+        LSR
+        STA     OUTC
+        RTS
+
 ; ------------------------------
-;       "HALT"
+;       "OUTW"
+
+_OWAIT: NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        NOP
+        RTS
+
+; ------------------------------
+;       "OUTHX"
+
+_OUTHX: LDA     OUTC
+        CPI     10
+        BMI     _OUTH1
+        SBI     10
+        ADI     'A'
+        OUT
+        JPA     _OWAIT
+_OUTH1: ADI     '0'
+        OUT
+        JPA     _OWAIT
+
+; ------------------------------
+;       "DEBUG"
+
+DEBUG:
+        LDI     0x0D
+        OUT
+        JPS     _OWAIT
+        LDI     0x0A
+        OUT
+        JPS     _OWAIT
+        LDA     IP.1
+        STA     OUTC
+        JPS     _HNYB
+        JPS     _OUTHX
+        LDA     IP.1
+        STA     OUTC
+        JPS     _LNYB
+        JPS     _OUTHX
+        LDA     IP.0
+        STA     OUTC
+        JPS     _HNYB
+        JPS     _OUTHX
+        LDA     IP.0
+        STA     OUTC
+        JPS     _LNYB
+        JPS     _OUTHX
+        LDI     '>'
+        OUT
+        JPS     _OWAIT
+        LDI     32
+        OUT
+KWAIT:  INP
+        CPI     0xFF
+        BEQ     KWAIT
+        RTS
+
+; ------------------------------
+;
+
+_DEB:   DW      _DEB0
+_DEB0:  LDI     1
+        STA     DBG
+        JPA     NEXT
 
 _HALT:  DW      _HALT0
 _HALT0: JPA     _HALT0
