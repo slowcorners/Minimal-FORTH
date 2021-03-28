@@ -156,9 +156,9 @@ INDE20: DW      XLOOP +INDE10
 HVLIST: DB      ^5 "VLIS" ^'T'                          ; ***** VLIST
         DW      HINDEX
 VLIST:  DW      DOCOL LIT 128 OUT STORE CONT AT AT
-VLIS10: DW      OUT AT LIT 80 GREAT ZBRAN +VLIS20
+VLIS10: DW      OUT AT LIT 28 GREAT ZBRAN +VLIS20
         DW      CR ZERO OUT STORE
-VLIS20: DW      DUP IDDOT SPACE SPACE PFA LFA AT
+VLIS20: DW      DUP IDDOT SPACE PFA LFA AT
         DW      DUP ZEQU QTERM OR ZBRAN +VLIS10
         DW      DROP SEMIS
 
@@ -166,8 +166,25 @@ HSCODE: DB      ^^5 ";COD" ^'E'                         ; ***** ;CODE
         DW      HVLIST
 SCODE:  DW      DOCOL QCSP COMP PSCOD LBRAC SMUDG SEMIS
 
-HFORTH: DB      ^^5 "FORT" ^'H'                         ; ***** FORTH
+HTEST:  DB      ^4 "TES" ^'T'                           ; ***** TEST (temporary)
         DW      HSCODE
+TEST:   DW      DOCOL PDOTQ
+        DB      4 "CHK!"
+        DW      CR SEMIS
+
+HNOOP:  DB      ^3 "NO" ^'P'                            ; ***** NOP
+        DW      HTEST
+NOOP:   DW      DOCOL SEMIS
+
+HBYE:   DB      ^3 "BY" ^'E'                            ; ***** BYE
+        DW      HNOOP
+BYE:    DW      BYE0
+BYE0:   LDI     0               ; Select EEPROM bank 0
+        BNK                     ; :
+        JPA     0               ; Re-start monitor
+
+HFORTH: DB      ^^5 "FORT" ^'H'                         ; ***** FORTH
+        DW      HBYE
 FORTH:  DW      DODOE DOVOC 0xA081 HFORTH
 XXVOC:  DW      0
 

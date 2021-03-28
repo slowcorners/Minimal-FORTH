@@ -56,16 +56,16 @@ _POP1:  JPS     _GET1_
 ;       R1X = (SP)+
 
 _DPOP1: LDR     SP
-        STA     R1.0
-        INW     SP
-        LDR     SP
-        STA     R1.1
-        INW     SP
-        LDR     SP
         STA     R1.2
         INW     SP
         LDR     SP
         STA     R1.3
+        INW     SP
+        LDR     SP
+        STA     R1.0
+        INW     SP
+        LDR     SP
+        STA     R1.1
         INW     SP
         RTS
 
@@ -97,16 +97,16 @@ _POP2:  JPS     _GET2_
 ;       R2X = (SP)+
 
 _DPOP2: LDR     SP
-        STA     R2.0
-        INW     SP
-        LDR     SP
-        STA     R2.1
-        INW     SP
-        LDR     SP
         STA     R2.2
         INW     SP
         LDR     SP
         STA     R2.3
+        INW     SP
+        LDR     SP
+        STA     R2.0
+        INW     SP
+        LDR     SP
+        STA     R2.1
         INW     SP
         RTS
 
@@ -361,24 +361,44 @@ _RPUSH3: DEW    RP
 ; ------------------------------
 ;       R1 = R1 + R2
 
-_ADD16: LDA     R2.0
-        ADB     R1.0
-        LDA     R2.1
-        ACB     R1.1
+_ADD16: LDA     R1.0
+        ADA     R2.0
+        STA     R1.0
+        LDA     R1.1
+        ACA     R2.1
+        STA     R1.1
         RTS
 
 ; ------------------------------
 ;       R1X = R1X + R2X
 
-_ADD32: LDA     R2.0
-        ADB     R1.0
-        LDA     R2.1
-        ACB     R1.1
-        LDA     R2.2
-        ACB     R1.2
-        LDA     R2.3
-        ACB     R1.3
+_ADD32: LDA     R1.0
+        ADA     R2.0
+        STA     R1.0
+        LDA     R1.1
+        ACA     R2.1
+        STA     R1.1
+        LDA     R1.2
+        ACA     R2.2
+        STA     R1.2
+        LDA     R1.3
+        ACA     R2.3
+        STA     R1.3
         RTS
+
+; ------------------------------
+;       R1 = (R1)
+
+_AT:    LDR     R1              ; Get LSB
+        STA     R1.2            ; ... Store temp
+        INW     R1              ; Bump
+        LDR     R1              ; Get MSB
+        STA     R1.3            ; ... Store temp
+        LDA     R1.2            ; Get temp LSB
+        STA     R1.0            ; ... Store
+        LDA     R1.3            ; Get temp MSB
+        STA     R1.1            ; ... Store
+        RTS                     ; Done
 
 ; ------------------------------
 ;       R1 = (R3)
@@ -493,22 +513,30 @@ _NOT16: LDA     R1.1            ; Negate byte1
 ;       R1 = -R1
 
 _NEG16: JPS     _NOT16          ; Bitwise NOT R1
-        LDI     1               ; Add one to make it 2-complement
-        ADB     R1.0            ; :
-        LDI     0               ; :
-        ACB     R1.1            ; :
+        LDA     R1.0            ; Add one to make it 2-complement
+        ADI     1               ; :
+        STA     R1.0            ; :
+        LDA     R1.1            ; :
+        ACI     0               ; :
+        STA     R1.1            ; :
         RTS                     ; Done
 
 ; ------------------------------
 ;       R1X = -R1X
 
 _NEG32: JPS     _NOT32          ; Bitwise NOT R1X
-        LDI     1               ; Add one to make it 2-complement
-        ADB     R1.0            ; :
-        DEC                     ; :
-        ACB     R1.1            ; :
-        ACB     R1.2            ; :
-        ACB     R1.3            ; :
+        LDA     R1.0            ; Add one to make it 2-complement
+        ADI     1               ; :
+        STA     R1.0            ; :
+        LDA     R1.1            ; :
+        ACI     0               ; :
+        STA     R1.1            ; :
+        LDA     R1.2            ; :
+        ACI     0               ; :
+        STA     R1.2            ; :
+        LDA     R1.3            ; :
+        ACI     0               ; :
+        STA     R1.3            ; :
         RTS                     ; Done
 
 ; ------------------------------
@@ -523,125 +551,15 @@ _XCH16: JPS     _PUSH1          ; Temp = R1
         RTS                     ; Done
 
 ; ------------------------------
-;       R1 = (R1)
-
-_AT:    LDR     R1              ; Get LSB
-        STA     R1.2            ; ... Store temp
-        INW     R1              ; Bump
-        LDR     R1              ; Get MSB
-        STA     R1.3            ; ... Store temp
-        LDA     R1.2            ; Get temp LSB
-        STA     R1.0            ; ... Store
-        LDA     R1.3            ; Get temp MSB
-        STA     R1.1            ; ... Store
-        RTS                     ; Done
-
-; ----------------------------------------------------------------------
-; TEMP DEBUG FUNCTIONS FOR BRINGING UP THE SYSTEM
-;
-
-DBG:    DB      0
-OUTC:   DB      0
-
-_LNYB:  LDA     OUTC
-        LSL
-        LSL
-        LSL
-        LSL
-        JPA     _HNYB1
-_HNYB:  LDA     OUTC
-_HNYB1: LSR
-        LSR
-        LSR
-        LSR
-        STA     OUTC
-        RTS
-
-; ------------------------------
-;       "OUTW"
-
-_OWAIT: NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        NOP
-        RTS
-
-; ------------------------------
-;       "OUTHX"
-
-_OUTHX: LDA     OUTC
-        CPI     10
-        BMI     _OUTH1
-        SBI     10
-        ADI     'A'
-        OUT
-        JPA     _OWAIT
-_OUTH1: ADI     '0'
-        OUT
-        JPA     _OWAIT
-
-; ------------------------------
-;       "DEBUG"
-
-DEBUG:
-        LDI     0x0D
-        OUT
-        JPS     _OWAIT
-        LDI     0x0A
-        OUT
-        JPS     _OWAIT
-        LDA     IP.1
-        STA     OUTC
-        JPS     _HNYB
-        JPS     _OUTHX
-        LDA     IP.1
-        STA     OUTC
-        JPS     _LNYB
-        JPS     _OUTHX
-        LDA     IP.0
-        STA     OUTC
-        JPS     _HNYB
-        JPS     _OUTHX
-        LDA     IP.0
-        STA     OUTC
-        JPS     _LNYB
-        JPS     _OUTHX
-        LDI     '>'
-        OUT
-        JPS     _OWAIT
-        LDI     32
-        OUT
-KWAIT:  INP
-        CPI     0xFF
-        BEQ     KWAIT
-        RTS
-
-; ------------------------------
-;
-
-_DEB:   DW      _DEB0
-_DEB0:  LDI     1
-        STA     DBG
-        JPA     NEXT
-
-_HALT:  DW      _HALT0
-_HALT0: JPA     _HALT0
-
-; ------------------------------
 ;       +ORIGIN
 ; NOTE: Index number in R2
 
 _PORIG: LDI     <ORIGIN         ; R1 = ORIGIN address
-        STA     R1.0            ; :
+        STA     R3.0            ; :
         LDI     >ORIGIN         ; :
-        STA     R1.1            ; :
+        STA     R3.1            ; :
         LDA     R2.0            ; Get index number
-        ADW     R1              ; Compute addr
+        ADW     R3              ; Compute addr
         RTS                     ; Done
 
 ; ------------------------------
@@ -649,11 +567,11 @@ _PORIG: LDI     <ORIGIN         ; R1 = ORIGIN address
 ; NOTE: Index number in R2
 
 _USER:  LDA     UP.0            ; R1 = UP
-        STA     R1.0            ; :
+        STA     R3.0            ; :
         LDA     UP.1            ; :
-        STA     R1.1            ; :
+        STA     R3.1            ; :
         LDA     R2.0            ; Get index number
-        ADW     R1              ; Compute addr
+        ADW     R3              ; Compute addr
         RTS                     ; Done
 
 ; ------------------------------
@@ -703,53 +621,50 @@ _XOR16: JPS     _XOR8
         RTS
 
 ; ------------------------------
-;       R1X = R1X * R2X
+;       R3X = R1X * R2X
 
-_UMULT: LDI     0               ; R1H = 0
-        STA     R1.2
-        STA     R1.3
-        STA     R2.2            ; R2H = 0
-        STA     R2.3
-        STA     R3.2            ; R3H = 0
-        STA     R3.3
-
-        LDA     R1.0            ; R3L = R1L
-        STA     R3.0
-        LDA     R1.1
-        STA     R3.1
-
-        LDI     0               ; R1L = 0
-        STA     R1.0
-        STA     R1.1
-
-        LDI     16              ; Set bit counter
+_UMULT: LDI     16              ; Set bit counter
         STA     BC
-
-_UMU10: LDA     R3.1            ; R3L = R3L >> 1
-        LSR
-        STA     R3.1
-        LDA     R3.0
-        ROR
-        STA     R3.0
-        BCC     _UMU20
-
-        JPS     _ADD32          ; R1X = R1X + R2X
-
-_UMU20: LDA     R2.0            ; R2X = R2X << 1
-        LSL
-        STA     R2.0
-        LDA     R2.1
-        ROL
-        STA     R2.1
-        LDA     R2.2
-        ROL
-        STA     R2.2
-        LDA     R2.3
-        ROL
-        STA     R2.3
-
-        DEB     BC
-        BNE     _UMU10
+        LDI     0               ; R3X = 0
+        STA     R3.0            ; :
+        STA     R3.1            ; :
+        STA     R3.2            ; :
+        STA     R3.3            ; :
+        STA     R1.2            ; R1H = 0
+        STA     R1.3            ; :
+_UMU10: LDA     R2.1            ; R2 >> 1
+        LSR                     ; :
+        STA     R2.1            ; :
+        LDA     R2.0            ; :
+        ROR                     ; :
+        STA     R2.0            ; :
+        BCC     _UMU20          ; No carry, no add
+        LDA     R3.0            ; R3X = R3X + R1X
+        ADA     R1.0            ; :
+        STA     R3.0            ; :
+        LDA     R3.1            ; :
+        ACA     R1.1            ; :
+        STA     R3.1            ; :
+        LDA     R3.2            ; :
+        ACA     R1.2            ; :
+        STA     R3.2            ; :
+        LDA     R3.3            ; :
+        ACA     R1.3            ; :
+        STA     R3.3            ; :
+_UMU20: LDA     R1.0            ; R1X << 1
+        LSL                     ; :
+        STA     R1.0            ; :
+        LDA     R1.1            ; :
+        ROL                     ; :
+        STA     R1.1            ; :
+        LDA     R1.2            ; :
+        ROL                     ; :
+        STA     R1.2            ; :
+        LDA     R1.3            ; :
+        ROL                     ; :
+        STA     R1.3            ; :
+        DEB     BC              ; Decrement bit counter
+        BNE     _UMU10          ; Not zero, more bits to go
         RTS
 
 ; ------------------------------

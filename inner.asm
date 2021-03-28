@@ -19,17 +19,17 @@ NEXT:   LDR     IP              ; WA = (IP)+
         LDR     IP
         STA     WA.1
         INW     IP
-NEXT10: LDR     WA              ; R1 = (WA)+
-        STA     R1.0
+NEXT10: LDR     WA              ; BC/TMP = (WA)+
+        STA     BC
         INW     WA
         LDR     WA
-        STA     R1.1
+        STA     TMP
         INW     WA
         LDA     DBG
         CPI     0
         BEQ     NEXT11
         JPS     DEBUG
-NEXT11: JPR     R1              ; jump @(R1)
+NEXT11: JPR     BC              ; jump @(BC/TMP)
 
 ; ------------------------------
 ;       Push TRUE and FALSE

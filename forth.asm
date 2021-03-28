@@ -33,6 +33,7 @@
 INCLUDE         defs.asm
 INCLUDE         boot-table.asm
 INCLUDE         helpers.asm
+INCLUDE         debug.asm
 INCLUDE         inner.asm
 INCLUDE         primaries.asm
 INCLUDE         precompiled.asm

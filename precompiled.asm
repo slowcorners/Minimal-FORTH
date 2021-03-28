@@ -47,11 +47,11 @@ DOVAR:  DEW     SP              ; -(SP) = WA
 HUSER:  DB      ^4 "USE" ^'R'                           ; ***** USER
         DW      HVAR
 USER:   DW      DOCOL CON PSCOD
-DOUSE:  JPS     _POP1           ; Get index
-        LDA     R1.0            ; Compute UP[index]
+DOUSE:  LDR     WA              ; Compute UP[index]
         ADA     UP.0            ; :
         STA     R1.0            ; :
-        LDA     R1.1            ; :
+        INW     WA              ; :
+        LDR     WA              ; :
         ACA     UP.1            ; :
         STA     R1.1            ; :
         JPA     PUSH            ; Push address; NEXT
@@ -208,10 +208,28 @@ PREV:   DW      DOUSE 60
 HONEP:  DB      ^2 "1" ^'+'                             ; ***** 1+
         DW      HPREV
 ONEP:   DW      DOCOL ONE PLUS SEMIS
+; ONEP0:  LDR     SP
+; ADI     1
+; STR     SP
+; INW     SP
+; LDR     SP
+; ACI     0
+; STR     SP
+; DEW     SP
+; JPA     NEXT
 
 HTWOP:  DB      ^2 "2" ^'+'                             ; ***** 2+
         DW      HPREV
 TWOP:   DW      DOCOL TWO PLUS SEMIS
+; TWOP0:  LDR     SP
+;        ADI     2
+;        STR     SP
+;        INW     SP
+;        LDR     SP
+;        ACI     0
+;        STR     SP
+;        DEW     SP
+;        JPA     NEXT
 
 HHERE:  DB      ^4 "HER" ^'E'                           ; ***** HERE
         DW      HTWOP
@@ -258,8 +276,8 @@ DDU10:  DW      SEMIS
 HTRAV:  DB      ^8 "TRAVERS" ^'E'                       ; ***** TRAVERSE
         DW      HDDUP
 TRAV:   DW      DOCOL SWAP
-TRAV10: DW      OVER PLUS LIT 0xFF
-        DW      OVER CAT LESS BRAN +TRAV10
+TRAV10: DW      OVER PLUS LIT 0x7F
+        DW      OVER CAT LESS ZBRAN +TRAV10
         DW      SWAP DROP SEMIS
 
 HLATES: DB      ^6 "LATES" ^'T'                         ; ***** LATEST
@@ -436,7 +454,7 @@ EXPE40: DW      I CSTOR ZERO I ONEP STORE
 EXPE50: DW      EMIT XLOOP +EXPE10
         DW      DROP SEMIS
 
-HQUERY: DB      ^6 "QUER" ^'Y'                          ; ***** QUERY
+HQUERY: DB      ^5 "QUER" ^'Y'                          ; ***** QUERY
         DW      HEXPEC
 QUERY:  DW      DOCOL TIB AT LIT 80 EXPEC
         DW      ZERO IN STORE SEMIS
@@ -453,7 +471,7 @@ NULL30: DW      SEMIS
 
 HFILL:  DB      ^4 "FIL" ^'L'                           ; ***** FILL
         DW      HNULL
-FILL:   DW      DOCOL _DEB SWAP TOR OVER CSTOR DUP
+FILL:   DW      DOCOL SWAP TOR OVER CSTOR DUP
         DW      ONEP FROMR ONE SUB CMOVE SEMIS
 
 HERASE: DB      ^5 "ERAS" ^'E'                          ; ***** ERASE
@@ -497,7 +515,7 @@ PNUM30: DW      FROMR SEMIS
 HNUMB:  DB      ^6 "NUMBE" ^'R'                         ; ***** NUMBER
         DW      HPNUMB
 NUMB:   DW      DOCOL ZERO ZERO ROT DUP ONEP CAT
-        DW      LIT '-' EQUAL DUP TOR PLUS LIT -1
+        DW      LIT '-' EQUAL DUP TOR SUB LIT -1
 NUMB10: DW      DPL STORE PNUMB DUP
         DW      CAT BL SUB ZBRAN +NUMB20
         DW      DUP CAT LIT '.' SUB
@@ -540,7 +558,10 @@ HIDDOT: DB      ^3 "ID" ^'.'                            ; ***** ID.
         DW      HERROR
 IDDOT:  DW      DOCOL PAD BL LIT 95 FILL
         DW      DUP PFA LFA OVER SUB PAD SWAP CMOVE
-        DW      PAD COUNT LIT 31 AND TYPE SPACE SEMIS
+        DW      PAD COUNT LIT 31 AND
+        DW      OVER OVER ONE SUB PLUS DUP CAT
+        DW      LIT 0x7F AND SWAP CSTOR
+        DW      TYPE SPACE SEMIS
 
 HCREAT: DB      ^6 "CREAT" ^'E'                         ; ***** CREATE
         DW      HIDDOT
@@ -570,18 +591,20 @@ DLIT10: DW      SEMIS
 
 HULESS: DB      ^2 "U" ^'<'                             ; ***** U<
         DW      HDLITE
-ULESS:  DW      DOCOL TOR ZERO FROMR ZERO DMINU DPLUS
-        DW      SWAP DROP ZLESS SEMIS
+ULESS:  DW      DOCOL OVER OVER XOR ZLESS ZBRAN +ULES10
+        DW      DROP ZLESS ZEQU BRAN +ULES20
+ULES10: DW      SUB ZLESS
+ULES20: DW      SEMIS
 
 HQSTAC: DB      ^6 "?STAC" ^'K'                         ; ***** ?STACK
         DW      HULESS
-QSTAC:  DW      DOCOL SZERO AT TWO SUB SPAT ULESS
+QSTAC:  DW      DOCOL SPAT SZERO AT SWAP ULESS
         DW      ONE QERR SPAT HERE LIT 128
         DW      PLUS ULESS TWO QERR SEMIS
 
 HINTER: DB      ^9 "INTERPRE" ^'T'                      ; ***** INTERPRET
         DW      HQSTAC
-INTER:  DW      DOCOL _DEB
+INTER:  DW      DOCOL
 INTE10: DW      DFIND ZBRAN +INTE40
         DW      STATE AT LESS ZBRAN +INTE20
         DW      CFA COMMA BRAN +INTE40

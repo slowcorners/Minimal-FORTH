@@ -201,15 +201,15 @@ ENCL40: JPS     _PUSH2          ; Push result n2 (ending delimiter)
         INB     R2.0            ; Also push n3 ...
         JPS     _PUSH2          ; : ... (index to first non-scanned char)
         JPA     NEXT            ; Done
-        ; <NUL> appears before token
-ENCL50: INB     R2.0            ; Push i + 1
+        ; <NUL> word found
+ENCL50: JPS     _PUSH2          ; Push i (index to <NUL>)
+        INB     R2.0            ; Push i + 1 (a null is one character long)
         JPS     _PUSH2          ; :
-        DEB     R2.0            ; Push i
-        JPS     _PUSH2          ; : ... indicating <NUL> before token
+        JPS     _PUSH2          ; :
         JPA     NEXT            ; Done
         ; Token ends with a <NUL>
-ENCL60: JPS     _PUSH2          ; Push i twice to indicate ...
-        JPS     _PUSH2          ; : ... that token ends in a <NUL>
+ENCL60: JPS     _PUSH2          ; Push i twice to continue next round ...
+        JPS     _PUSH2          ; : ... by scanning the <NUL>
         JPA     NEXT            ; Done
 
 HEMIT:  DB      ^4 "EMI" ^'T'                           ; ***** EMIT
@@ -217,7 +217,13 @@ HEMIT:  DB      ^4 "EMI" ^'T'                           ; ***** EMIT
 EMIT:   DW      EMIT0
 EMIT0:  JPS     _POP1           ; Get character
         LDA     R1.0            ; Send char to terminal
-        OUT                     ;
+        OUT                     ; :
+        LDI     34              ; OUT++
+        STA     R2.0            ; : R2 = Index to OUT
+        JPS     _USER           ; : R3 = Addr to OUT
+        JPS     _LD16           ; : R1 = OUT
+        INW     R1              ; : R1++
+        JPS     _ST16           ; : OUT = R1'
         JPA     NEXT            ; Done
 
 HKEY:   DB      ^3 "KE" ^'Y'                            ; ***** KEY
@@ -261,16 +267,32 @@ CMOV10: LDR     R1              ; Get byte from source
         INW     R1              ; Bump source pointer
         INW     R2              ; Bump destination pointer
         DEW     R3              ; Decrement count
-        BNE     CMOV20          ; Count zero: We are done
-        JPA     CMOV10          ; Count non-zero: Next byte
-CMOV20: JPA     NEXT            ; Done
+        LDA     R3.0            ; Low byte zero?
+        CPI     0               ; :
+        BNE     CMOV10          ; NO: One more byte
+        LDA     R3.1            ; High byte zero?
+        CPI     0               ; :
+        BNE     CMOV10          ; NO: One more byte
+        JPA     NEXT            ; YES: Count zero. Done.
 
 HUSTAR: DB      ^2 "U" ^'*'                             ; ***** U*
         DW      HCMOVE
 USTAR:  DW      USTAR0
 USTAR0: JPS     _POP21          ; R2 = oper2, R1 = oper1
         JPS     _UMULT          ; u32 = u16 * u16
-        JPA     DPUSH           ; Done
+        DEW     SP              ; -(SP) = R3X
+        LDA     R3.1            ; :
+        STR     SP              ; :
+        DEW     SP              ; :
+        LDA     R3.0            ; :
+        STR     SP              ; :
+        DEW     SP              ; :
+        LDA     R3.3            ; :
+        STR     SP              ; :
+        DEW     SP              ; :
+        LDA     R3.2            ; :
+        STR     SP              ; :
+        JPA     NEXT            ; Done
 
 HUSLAS: DB      ^2 "U" ^'/'                             ; ***** U/
         DW      HUSTAR
@@ -319,8 +341,8 @@ HSPSTO: DB      ^3 "SP" ^'!'                            ; ***** SP!
 SPSTO:  DW      SPSTO0
 SPSTO0: LDI     18              ; Index of SP0
         STA     R2.0            ; : in boot table
-        JPS     _PORIG          ; R1 = &bootTable[R2]
-        JPS     _AT             ; R1 = (R1)
+        JPS     _PORIG          ; R3 = &bootTable[R2]
+        JPS     _LD16           ; R1 = XSP
         LDA     R1.0            ; SP = R1
         STA     SP.0            ; :
         LDA     R1.1            ; :
@@ -332,8 +354,8 @@ HRPSTO: DB      ^3 "RP" ^'!'                            ; ***** RP!
 RPSTO:  DW      RPSTO0
 RPSTO0: LDI     20              ; Index of SP0
         STA     R2.0            ; : in boot table
-        JPS     _PORIG          ; R1 = &bootTable[R2]
-        JPS     _AT             ; R1 = XRP
+        JPS     _PORIG          ; R3 = &bootTable[R2]
+        JPS     _LD16           ; R1 = XRP
         LDA     R1.0            ; SP = R1
         STA     RP.0            ; :
         LDA     R1.1            ; :
@@ -345,8 +367,8 @@ HUPSTO: DB      ^3 "UP" ^'!'                            ; ***** UP!
 UPSTO:  DW      UPSTO0
 UPSTO0: LDI     16              ; Index of UP0
         STA     R2.0            ; : in boot table
-        JPS     _PORIG          ; R1 = &bootTable[R2]
-        JPS     _AT             ; R1 = XUP
+        JPS     _PORIG          ; R3 = &bootTable[R2]
+        JPS     _LD16           ; R1 = XUP
         LDA     R1.0            ; UP = R1
         STA     UP.0            ; :
         LDA     R1.1            ; :
@@ -465,7 +487,7 @@ DROP0:  INW     SP              ; n1 --
 
 HSWAP:  DB      ^4 "SWA" ^'P'                           ; **** SWAP
         DW      HDROP
-SWAP:   DW      OVER0
+SWAP:   DW      SWAP0
 SWAP0:  JPS     _POP21          ; n1 n2 -- n2 n1
         JPS     _PUSH2          ; :
         JPA     PUSH            ; :
@@ -478,7 +500,7 @@ DUP0:   JPS     _GET1           ; n1 -- n1 n1
 
 HPSTOR: DB      ^2 "+" ^'!'                             ; ***** +!
         DW      HDUP
-PSTOR:  DB      PSTOR0
+PSTOR:  DW      PSTOR0
 PSTOR0: JPS     _POP3           ; R3 = addr
         JPS     _POP2           ; R2 = incr
         JPS     _LD16           ; R1 = (R3)

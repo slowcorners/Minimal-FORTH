@@ -39,5 +39,3 @@ COLD10: ; Init FORTH registers
         DW      FIRST AT PREV STORE
         ; Continue via ABORT
         DW      ABORT
-
-
