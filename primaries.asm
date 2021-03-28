@@ -133,26 +133,33 @@ PFIN10: LDA     R3.0            ; R2 = R3 (string address)
         LSR                     ; :
         STA     R2.2            ; R2.2 is counter for string match
         CPR     R2              ; lByte == string length?
-        BNE     PFIN25
+        BNE     PFIN25          ; NO: Move over to next header
         ; Length bytes match, check names
 PFIN20: INW     R1              ; Bump pointers
         INW     R2              ; :
         LDR     R1              ; Get char from dictionary
         LSL                     ; char &= 0x7F
-        LSR
+        LSR                     ; :
         CPR     R2              ; Is it a match with search string?
         BNE     PFIN30          ; NO: Look at next header in dictionary
-        DEB     R2.2            ; Decrement character counter
-        CPI     0               ; :
+        DEB     R2.2            ; YES: Decrement character counter
+        CPI     0               ; At end of string?
         BEQ     PFIN77          ; YES: This is the word we are looking for
         JPA     PFIN20          ; Match so far, try next char
         ; Step to next header in dictionary
-PFIN25: INW     R1              ; Bump NFA pointer to actual characters
+PFIN25: LSL                     ; Eliminate potential smudge bit
+        LSL                     ; A = A & 0x1F
+        LSL                     ; lByte consists of [^ISnnnnn]
+        LSR                     ; :
+        LSR                     ; :
+        LSR                     ; :
+        STA     R2.2            ; : also update char counter
+        INW     R1              ; Bump NFA pointer to actual characters
 PFIN30: INW     R1              ; Bump NFA pointer
         DEB     R2.2            ; Decrement character counter
         CPI     0               ; End of name field?
         BNE     PFIN30          ; NO: Step to next char
-        JPS     _AT             ; R1 = (R1)
+        JPS     _AT             ; YES: R1 = (R1)
         LDA     R1.1            ; At end of dictionary?
         CPI     0               ; :
         BNE     PFIN10          ; NO: Try this word for match
@@ -512,10 +519,13 @@ HTOGGL: DB      ^6 "TOGGL" ^'E'                         ; ***** TOGGLE
         DW      HPSTOR
 TOGGL:  DW      TOGGL0
 TOGGL0: JPS     _POP2           ; R2 = bit mask
+        JPS     _GET3           ; R3 = addr (leave copy on stack)
+        LDR     R3              ; Get the byte
+        STA     R1.0            ; :
+        JPS     _XOR8           ; R1.0 = R1.0 ^ R2.0
         JPS     _POP3           ; R3 = addr
-        JPS     _LD16           ; R1 = (R3)
-        JPS     _XOR16          ; R1 = R1 ^ R2
-        JPS     _ST16           ; (R3) = R1
+        LDA     R1.0            ; Update the byte
+        STR     R3              ; :
         JPA     NEXT            ; Done
 
 HAT:    DB      ^1 ^'@'                                 ; ***** @

@@ -8,7 +8,7 @@ ORIGIN: JPA     CENT            ;  0: COLD start
         DW      0               ;  8: Processor type in radix 36
         DW      0               ; 10: Revision
         DW      HFORTH          ; 12: Pointer to latest word defined
-        DW      CH_DEL          ; 14: Backspace character
+        DW      CH_BSP          ; 14: Backspace character
         DW      XUP             ; 16: Pointer to initial user area
         DW      XSP             ; 18: Initial data stack pointer
         DW      XRP             ; 20: Initial return stack pointer

@@ -190,12 +190,16 @@ DEBUG:
 KWAIT:  INP
         CPI     0xFF
         BEQ     KWAIT
+        CPI     CH_BL
+        BEQ     KWAI10
         CPI     CH_BSP
-        BNE     KWAI10
+        BNE     KWAI20
         LDI     0
         STA     DBG
         JPA     0
-KWAI10: RTS
+KWAI10: LDI     0
+        STA     DBG
+KWAI20: RTS
 
 ; ------------------------------
 ;

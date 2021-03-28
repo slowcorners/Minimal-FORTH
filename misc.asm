@@ -1,7 +1,7 @@
 ; ----------------------------------------------------------------------
 ; MISCELLANEOUS HIGHER LEVEL
 
-HTICK:  DB      ^1 ^39                                  ; ***** '
+HTICK:  DB      ^^1 ^39                                 ; ***** '
         DW      HARROW
 TICK:   DW      DOCOL DFIND ZEQU ZERO QERR DROP LITER SEMIS
 

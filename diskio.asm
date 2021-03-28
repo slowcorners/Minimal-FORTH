@@ -74,7 +74,7 @@ LOAD:   DW      DOCOL BLK AT TOR IN AT TOR ZERO IN
         DW      STORE BSCR STAR BLK STORE INTER FROMR
         DW      IN STORE FROMR BLK STORE SEMIS
 
-HARROW: DB      ^3 "--" ^'>'                            ; ***** -->
+HARROW: DB      ^^3 "--" ^'>'                           ; ***** -->
         DW      HLOAD
 ARROW:  DW      DOCOL QLOAD ZERO IN STORE BSCR BLK AT
         DW      OVER MOD SUB BLK PSTOR SEMIS
