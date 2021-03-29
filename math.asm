@@ -3,19 +3,17 @@
 
 HSTOD:  DB      ^4 "S->" ^'D'                           ; ***** S->D
         DW      HCOLD
-STOD:   DW      DOCOL DUP ZLESS ZBRAN +STOD10
-        DW      LIT -1 BRAN +STOD20
-STOD10: DW      ZERO
-STOD20: DW      SEMIS
-; STOD0:  CLW     R1              ; Assume high word zero
-;        INW     SP              ; Get operand high byte
-;        LDR     SP              ; :
-;        DEW     SP              ; :
-;        CPI     0               ; Negative?
-;        BMI     STOD10          ; YES: Push 0xFFFF
-;        JPA     PUSH            ; NO: Push 0x0000
-; STOD10: DEW     R1              ; Make 0x0000 into 0xFFFF
-;        JPA     PUSH            ; Done
+STOD:   DW      STOD0
+STOD0:  CLW     R1              ; Assume high word zero
+        INW     SP              ; Get operand high byte
+        LDR     SP              ; :
+        CPI     0               ; Negative?
+        BMI     STOD10          ; YES: Push 0xFFFF
+        DEW     SP              ; :
+        JPA     PUSH            ; NO: Push 0x0000
+STOD10: DEW     SP              ; :
+        DEW     R1              ; Make 0x0000 into 0xFFFF
+        JPA     PUSH            ; Done
 
 HPM:    DB      ^2 "+" ^'-'                             ; ***** +-
         DW      HSTOD

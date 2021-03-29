@@ -1,9 +1,17 @@
 ; ----------------------------------------------------------------------
 ; DISK I/O
 
-HPBUF:  DB      ^4 "+BU" ^'F'                           ; ***** +BUF
+HRW:    DB      ^3 "R/" ^'W'                            ; ***** R/W
         DW      HMSMOD
-PBUF:   DW      DOCOL BBUF LIT 4 PLUS
+RW:     DW      DOCOL TOR
+        DW      LIT 32 SLMOD ONEP TBANK
+        DW      LIT 1024 STAR FROMR ZBRAN +RW10
+        DW      SWAP
+RW10:   DW      LIT 1024 CMOVE SEMIS
+
+HPBUF:  DB      ^4 "+BU" ^'F'                           ; ***** +BUF
+        DW      HRW
+PBUF:   DW      DOCOL BBUF LIT 4 PLUS PLUS
         DW      DUP LIMIT AT EQUAL ZBRAN +PBUF10
         DW      DROP FIRST AT
 PBUF10: DW      DUP PREV AT SUB SEMIS
@@ -31,15 +39,15 @@ HBUFFE: DB      ^6 "BUFFE" ^'R'                         ; ***** BUFFER
         DW      HFLUSH
 BUFFE:  DW      DOCOL USE AT DUP TOR
 BUFF10: DW      PBUF ZBRAN +BUFF10
-        DW      USE STORE R AT LESS ZBRAN +BUFF20
+        DW      USE STORE R AT ZLESS ZBRAN +BUFF20
         DW      R TWOP R AT LIT 0x7FFF
         DW      AND ZERO RW
 BUFF20: DW      R STORE R PREV STORE FROMR TWOP SEMIS
 
 HBLOCK: DB      ^5 "BLOC" ^'K'                          ; ***** BLOCK
         DW      HBUFFE
-BLOCK:  DW      DOCOL TOR PREV AT DUP
-        DW      AT LIT 0x7FFF AND R SUB ZBRAN +BLOC30
+BLOCK:  DW      DOCOL TOR PREV AT DUP AT
+        DW      LIT 0x7FFF AND R SUB ZBRAN +BLOC30
 BLOC10: DW      PBUF ZEQU ZBRAN +BLOC20
         DW      DROP R BUFFE DUP R
         DW      ONE RW TWO SUB

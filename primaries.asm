@@ -253,19 +253,8 @@ QTERM0: CLW     R1              ; Default FALSE to return
         DEW     R1              ; Make default FALSE into TRUE
 QTER10: JPA     PUSH            ; Push R1; NEXT
 
-HCR:    DB      ^2 "C" ^'R'                             ; ***** CR
-        DW      HQTERM
-CR:     DW      DOCOL LIT 13 EMIT LIT 10 EMIT SEMIS
-
-HRW:    DB      ^3 "R/" ^'W'                            ; ***** R/W
-        DW      HCR
-RW:     DW      RW0
-RW0:    JPS     _POP3           ; 1:read 0:write
-        JPS     _POP21          ; R2:block# R1:addr
-        JPA     NEXT
-
 HCMOVE: DB      ^5 "CMOV" ^'E'                          ; ***** CMOVE
-        DW      HRW
+        DW      HQTERM
 CMOVE:  DW      CMOVE0
 CMOVE0: JPS     _POP3           ; R3 = count
         JPS     _POP21          ; R2 = dst, R1 = src
@@ -528,8 +517,20 @@ TOGGL0: JPS     _POP2           ; R2 = bit mask
         STR     R3              ; :
         JPA     NEXT            ; Done
 
-HAT:    DB      ^1 ^'@'                                 ; ***** @
+HTBANK: DB      ^5 ">BAN" ^'K'                          ; >BANK
         DW      HTOGGL
+TBANK:  DW      TBANK0
+TBANK0: JPS     _POP1           ; Get bank number from data stack into R1
+        LDI     62              ; Get index to user variable BANK
+        STA     R2.0            ; : into R2.0
+        JPS     _USER           ; R3 now contains absolute address of BANK
+        JPS     _ST16           ; Save the bank number in user variable BANK
+        LDA     R1.0            ; Do the actual bank switch
+        BNK                     ; :
+        JPA     NEXT
+        
+HAT:    DB      ^1 ^'@'                                 ; ***** @
+        DW      HTBANK
 AT:     DW      AT0
 AT0:    JPS     _POP3           ; R3 = addr
         JPS     _LD16           ; R1 = (R3)

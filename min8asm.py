@@ -6,7 +6,7 @@ m i n 8 a s m
 
 A minimal assembler for the Minimal-CPU.
 
-Date:       2021-03-18
+Date:       2021-03-28
 Version:    0.1
 Author:     Nils "slowcorners" Kullberg
 License:    MIT Open Source Initiative
@@ -49,6 +49,7 @@ loco = 0
 objectCode = {}
 lineno = -1
 listFile = []
+symUsed = {}
 
 if len(sys.argv) != 2:
     print('usage: min8asm.py <sourcefile>')
@@ -121,10 +122,12 @@ def findSym(name, offsFlag, nsb):
     else:
         symtab[name].append((loco, offsFlag, nsb))
         symValue = None
+    symUsed[name] = True
     return symValue
 
 def defineSym(name, value = loco):
-    global symtab, objectCode
+    global symtab, objectCode, symUsed
+    symUsed[name] = False
     try:
         resolved = symtab[name][0]
         if resolved:
@@ -134,6 +137,7 @@ def defineSym(name, value = loco):
         resolved = True
     if not resolved:
         forwards = symtab[name][1:]
+        if len(forwards): symUsed[name] = True
         while len(forwards):
             forward = forwards[0]
             if forward[1]:
@@ -333,8 +337,13 @@ assemble()
 checkForErrors()
 writeOutputfile(sys.argv[1].split('.')[0] + '.hex')
 writeListfile(sys.argv[1].split('.')[0] + '.lst')
-
-print('%d lines done.' % len(sourceCode))
+'''
+print('Symbols defined but not used:')
+for key in symUsed.keys():
+    if symUsed[key] == False:
+        print('%s ' % key, end = '')
+'''
+print('\n%d lines done.' % len(sourceCode))
 
 # End of file: min8asm.py
 # ----------------------------------------------------------------------

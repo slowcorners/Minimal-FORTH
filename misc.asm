@@ -166,14 +166,12 @@ HSCODE: DB      ^^5 ";COD" ^'E'                         ; ***** ;CODE
         DW      HVLIST
 SCODE:  DW      DOCOL QCSP COMP PSCOD LBRAC SMUDG SEMIS
 
-HTEST:  DB      ^4 "TES" ^'T'                           ; ***** TEST (temporary)
+HCR:    DB      ^2 "C" ^'R'                             ; ***** CR
         DW      HSCODE
-TEST:   DW      DOCOL PDOTQ
-        DB      4 "CHK!"
-        DW      CR SEMIS
+CR:     DW      DOCOL LIT 13 EMIT LIT 10 EMIT SEMIS
 
-HNOOP:  DB      ^3 "NO" ^'P'                            ; ***** NOP
-        DW      HTEST
+HNOOP:  DB      ^4 "NOO" ^'P'                           ; ***** NOOP
+        DW      HCR
 NOOP:   DW      DOCOL SEMIS
 
 HBYE:   DB      ^3 "BY" ^'E'                            ; ***** BYE

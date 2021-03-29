@@ -25,10 +25,10 @@ NEXT10: LDR     WA              ; BC/TMP = (WA)+
         LDR     WA
         STA     TMP
         INW     WA
-        LDA     DBG
-        CPI     0
-        BEQ     NEXT11
-        JPS     DEBUG
+;        LDA     DBG
+;        CPI     0
+;        BEQ     NEXT11
+;        JPS     DEBUG
 NEXT11: JPR     BC              ; jump @(BC/TMP)
 
 ; ------------------------------

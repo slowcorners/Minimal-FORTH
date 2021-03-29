@@ -59,8 +59,12 @@ DOUSE:  LDR     WA              ; Compute UP[index]
 ; ------------------------------
 ; PRECOMPILED CONSTANTS
 
-HZERO:  DB      ^1 ^'0'                                 ; ***** 0
+HMONE:  DB      ^2 "-" ^'1'                             ; ***** -1
         DW      HUSER
+MONE:   DW      DOCON -1
+
+HZERO:  DB      ^1 ^'0'                                 ; ***** 0
+        DW      HMONE
 ZERO:   DW      DOCON 0
 
 HONE:   DB      ^1 ^'1'                                 ; ***** 1
@@ -81,7 +85,7 @@ BL:     DW      DOCON 32
 
 HCL:    DB      ^3 "C/" ^'L'                            ; ***** C/L
         DW      HBL
-CL:     DW      DOCON 80
+CL:     DW      DOCON 40
 
 HBBUF:  DB      ^5 "B/BU" ^'F'                          ; ***** B/BUF
         DW      HCL
@@ -202,34 +206,65 @@ HPREV:  DB      ^4 "PRE" ^'V'                           ; ***** PREV
         DW      HUSE
 PREV:   DW      DOUSE 60
 
+HBANK:  DB      ^4 "BAN" ^'K'                           ; ***** BANK
+        DW      HPREV
+BANK:   DW      DOUSE 62
+
 ; END OF USER VARIABLES
 ; ------------------------------
 
+HRSHFT: DB      ^2 ">" ^'>'                             ; ***** >>
+        DW      HBANK
+RSHFT:  DW      RSHFT0
+RSHFT0: JPS     _POP21
+RSHF10: LDA     R1.1
+        LSR
+        STA     R1.1
+        LDA     R1.0
+        ROR
+        STA     R1.0
+        DEB     R2.0
+        BNE     RSHF10
+        JPA     PUSH
+
+HLSHFT: DB      ^2 "<" ^'<'                             ; ***** <<
+        DW      HRSHFT
+LSHFT:  DW      LSHFT0
+LSHFT0: JPS     _POP21
+LSHF10: LDA     R1.0
+        LSL
+        STA     R1.0
+        LDA     R1.1
+        ROL
+        STA     R1.1
+        DEB     R2.0
+        BNE     LSHF10
+        JPA     PUSH
+
 HONEP:  DB      ^2 "1" ^'+'                             ; ***** 1+
-        DW      HPREV
-ONEP:   DW      DOCOL ONE PLUS SEMIS
-; ONEP0:  LDR     SP
-; ADI     1
-; STR     SP
-; INW     SP
-; LDR     SP
-; ACI     0
-; STR     SP
-; DEW     SP
-; JPA     NEXT
+        DW      HLSHFT
+ONEP:   DW      ONEP0
+ONEP0:  
+        JPS     _POP1
+        LDA     R1.0
+        INC
+        STA     R1.0
+        LDA     R1.1
+        ACI     0
+        STA     R1.1
+        JPA     PUSH
 
 HTWOP:  DB      ^2 "2" ^'+'                             ; ***** 2+
-        DW      HPREV
-TWOP:   DW      DOCOL TWO PLUS SEMIS
-; TWOP0:  LDR     SP
-;        ADI     2
-;        STR     SP
-;        INW     SP
-;        LDR     SP
-;        ACI     0
-;        STR     SP
-;        DEW     SP
-;        JPA     NEXT
+        DW      HONEP
+TWOP:   DW      TWOP0
+TWOP0:  JPS     _POP1
+        LDA     R1.0
+        ADI     2
+        STA     R1.0
+        LDA     R1.1
+        ACI     0
+        STA     R1.1
+        JPA     PUSH
 
 HHERE:  DB      ^4 "HER" ^'E'                           ; ***** HERE
         DW      HTWOP
@@ -261,7 +296,11 @@ GREAT:  DW      DOCOL SWAP LESS SEMIS
 
 HROT:   DB      ^3 "RO" ^'T'                            ; ***** ROT
         DW      HGREAT
-ROT:    DW      DOCOL TOR SWAP FROMR SWAP SEMIS
+ROT:    DW      ROT0
+ROT0:   JPS     _POP321
+        JPS     _PUSH2
+        JPS     _PUSH3
+        JPA     PUSH
 
 HSPACE: DB      ^5 "SPAC" ^'E'                          ; ***** SPACE
         DW      HROT
@@ -269,9 +308,16 @@ SPACE:  DW      DOCOL BL EMIT SEMIS
 
 HDDUP:  DB      ^4 "-DU" ^'P'                           ; ***** -DUP
         DW      HSPACE
-DDUP:   DW      DOCOL DUP ZBRAN +DDU10
-        DW      DUP
-DDU10:  DW      SEMIS
+DDUP:   DW      DDUP0
+DDUP0:  JPS     _GET1
+        LDA     R1.0
+        CPI     0
+        BNE     DDUP10
+        LDA     R1.1
+        CPI     0
+        BNE     DDUP10
+        JPA     NEXT
+DDUP10: JPA     PUSH
 
 HTRAV:  DB      ^8 "TRAVERS" ^'E'                       ; ***** TRAVERSE
         DW      HDDUP

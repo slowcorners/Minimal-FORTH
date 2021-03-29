@@ -135,9 +135,11 @@ _POP3:  JPS     _GET3_
         RTS
 
 ; ------------------------------
+;       R3 = (SP)+
 ;       R2 = (SP)+
 ;       R1 = (SP)+
 
+_POP321: JPS    _POP3
 _POP21: JPS     _POP2
         JPS     _POP1
         RTS
