@@ -85,7 +85,7 @@ BL:     DW      DOCON 32
 
 HCL:    DB      ^3 "C/" ^'L'                            ; ***** C/L
         DW      HBL
-CL:     DW      DOCON 40
+CL:     DW      DOCON 64
 
 HBBUF:  DB      ^5 "B/BU" ^'F'                          ; ***** B/BUF
         DW      HCL

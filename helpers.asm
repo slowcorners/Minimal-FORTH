@@ -556,7 +556,7 @@ _XCH16: JPS     _PUSH1          ; Temp = R1
 ;       +ORIGIN
 ; NOTE: Index number in R2
 
-_PORIG: LDI     <ORIGIN         ; R1 = ORIGIN address
+_PORIG: LDI     <ORIGIN         ; R3 = ORIGIN address
         STA     R3.0            ; :
         LDI     >ORIGIN         ; :
         STA     R3.1            ; :
@@ -568,13 +568,66 @@ _PORIG: LDI     <ORIGIN         ; R1 = ORIGIN address
 ;       _USER
 ; NOTE: Index number in R2
 
-_USER:  LDA     UP.0            ; R1 = UP
+_USER:  LDA     UP.0            ; R3 = UP
         STA     R3.0            ; :
         LDA     UP.1            ; :
         STA     R3.1            ; :
         LDA     R2.0            ; Get index number
         ADW     R3              ; Compute addr
         RTS                     ; Done
+
+; ------------------------------
+;       _PICK
+; NOTE: Index number on Minimal stack
+
+_PICK:  LDA     SP.0            ; R3 = SP
+        STA     R3.0            ; :
+        LDA     SP.1            ; :
+        STA     R3.1            ; :
+        LDS     3               ; Get index number
+        LSL                     ; : word index --> byte index
+        ADW     R3              ; Compute addr
+        JPS     _LD16           ; Get the n:th word from stack
+        RTS                     ; Done
+
+; ------------------------------
+;       _ROLL
+; NOTE: Index number on Minimal stack
+
+_ROLL:  LDS     3               ; Get index number
+        STA     R3.3            ; Prepare loop counter
+        PHS                     ; Push as parameter for _PICK
+        JPS     _PICK           ; Pick n:th element in R1
+        PLS                     ; Cleanup stack
+        ; Set up source pointer (R2) for move
+        LDA     R3.0            ; :
+        STA     R2.0            ; :
+        LDA     R3.1            ; :
+        STA     R2.1            ; :
+        DEW     R2              ; :
+        DEW     R2              ; :
+        ; All moved already?
+_ROL10: LDA     R3.3            ; Get loop counter
+        CPI     0               ; Zero?
+        BEQ     _ROL99          ; YES: We are done
+        ; Move one word down in the stack
+        LDR     R2              ; Move word
+        STR     R3              ; :
+        INW     R2              ; :
+        INW     R3              ; :
+        LDR     R2              ; :
+        STR     R3              ; :
+        ; Bump pointers upwards in the stack
+        LDI     3               ; :
+        SBW     R2              ; :
+        LDI     3               ; :
+        SBW     R3              ; :
+        ; Decrement counter
+        DEB     R3.3            ; Decrement loop counter
+        JPA     _ROL10          ; Go for another round
+        ; All done
+_ROL99: JPS     _PUT1           ; Replace top of stack with R1
+        RTS                     ; :
 
 ; ------------------------------
 ;       _SWAP8

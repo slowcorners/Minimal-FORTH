@@ -466,8 +466,28 @@ DMINU0: JPS     _DPOP1          ; Get operand
         JPS     _NEG32          ; Negate
         JPA     DPUSH
 
-HOVER:  DB      ^4 "OVE" ^'R'                           ; **** OVER
+HPICK:  DB      ^4 "PIC" ^'K'                           ; ***** PICK
         DW      HDMINU
+PICK:   DW      PICK0
+PICK0:  JPS     _POP1           ; Get index number
+        LDA     R1.0            ; Push onto Minimal stack
+        PHS                     ; :
+        JPS     _PICK           ; R1 = n(SP)
+        PLS                     ; Remove index number
+        JPA     PUSH            ; -(SP) = R1; NEXT
+
+HROLL:  DB      ^4 "ROL" ^'L'                           ; ***** ROLL
+        DW      HPICK
+ROLL:   DW      ROLL0
+ROLL0:  JPS     _POP1           ; Get index number
+        LDA     R1.0            ; Push onto Minimal stack
+        PHS                     ; :
+        JPS     _ROLL           ; R1 = n(SP)
+        PLS                     ; Remove index number
+        JPA     NEXT            ; Done
+
+HOVER:  DB      ^4 "OVE" ^'R'                           ; ***** OVER
+        DW      HROLL
 OVER:   DW      OVER0
 OVER0:  JPS     _POP2           ; n1 n2 -- n1 n2 n1
         JPS     _GET1           ; :
@@ -477,8 +497,8 @@ OVER0:  JPS     _POP2           ; n1 n2 -- n1 n2 n1
 HDROP:  DB      ^4 "DRO" ^'P'                           ; **** DROP
         DW      HOVER
 DROP:   DW      DROP0
-DROP0:  INW     SP              ; n1 --
-        INW     SP              ; :
+DROP0:  LDI     2               ; n1 --
+        ADW     SP              ; :
         JPA     NEXT            ; Done
 
 HSWAP:  DB      ^4 "SWA" ^'P'                           ; **** SWAP
@@ -494,8 +514,49 @@ DUP:    DW      DUP0
 DUP0:   JPS     _GET1           ; n1 -- n1 n1
         JPA     PUSH            ; :
 
-HPSTOR: DB      ^2 "+" ^'!'                             ; ***** +!
+HTOVER: DB      ^5 "2OVE" ^'R'                          ; ***** 2OVER
         DW      HDUP
+TOVER:  DW      TOVER0
+TOVER0: LDI     3
+        PHS
+        JPS     _PICK           ; 3 PICK
+        JPS     _PUSH1
+        JPS     _PICK           ; 3 PICK
+        PLS
+        JPA     PUSH
+
+HTDROP: DB      ^5 "2DRO" ^'P'                          ; ***** 2DROP
+        DW      HTOVER
+TDROP:  DW      TDROP0
+TDROP0: LDI     4
+        ADW     SP
+        JPA     NEXT
+
+HTSWAP: DB      ^5 "2SWA" ^'P'                          ; ***** 2SWAP
+        DW      HTDROP
+TSWAP:  DW      TSWAP0
+TSWAP0: LDI     3
+        PHS
+        JPS     _ROLL           ; 3 ROLL
+        JPS     _ROLL           ; 3 ROLL
+        PLS
+        JPA     NEXT
+
+HTDUP:  DB      ^4 "2DU" ^'P'                           ; ***** 2DUP
+        DW      HTSWAP
+TDUP:   DW      TDUP0
+TDUP0:  JPS     _POP2           ; OVER
+        JPS     _GET1           ; :
+        JPS     _PUSH2          ; :
+        JPS     _PUSH1          ; :
+        JPS     _POP2           ; OVER
+        JPS     _GET1           ; :
+        JPS     _PUSH2          ; :
+        JPA     PUSH            ; :
+
+
+HPSTOR: DB      ^2 "+" ^'!'                             ; ***** +!
+        DW      HTDUP
 PSTOR:  DW      PSTOR0
 PSTOR0: JPS     _POP3           ; R3 = addr
         JPS     _POP2           ; R2 = incr
