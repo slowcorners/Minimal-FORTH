@@ -185,7 +185,10 @@ def depositValue(txt, size):
     # Allow for decimal, hex, octal and binary constants
     elif txt[0:2] == '0x' or txt[0:2] == '0o' or txt[0:2] == '0b' or txt.isnumeric():
         if neg:
-            dv(-int(txt, 0) | highbit, size)
+            val = int(txt, 0)
+            if size == WORD: val = (0x10000 - val) & 0xFFFF
+            if size == BYTE: val = (0x100 - val) & 0xFF
+            dv(val | highbit, size)
         else:
             dv(int(txt, 0) | highbit, size)
     elif txt[0] == '"':
