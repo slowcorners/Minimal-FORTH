@@ -40,5 +40,6 @@ INCLUDE         precompiled.asm
 INCLUDE         coldwarm.asm
 INCLUDE         math.asm
 INCLUDE         diskio.asm
+INCLUDE         extras.asm
 INCLUDE         misc.asm
 INCLUDE         uppermem.asm

@@ -1,0 +1,13 @@
+0 CONSTANT T4
+
+0 VARIABLE SCORES 24 ALLOT
+
+: RESET
+  22 0 DO
+    0 SCORES I + !
+    2
+  +LOOP
+;
+
+: RANDO   RND 0 U/ SWAP DROP ;
+

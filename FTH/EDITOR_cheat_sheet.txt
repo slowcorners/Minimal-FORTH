@@ -1,0 +1,35 @@
+Basic (not BASIC) FORTH screen editor commands
+----------------------------------------------
+
+Command Stack     Explanantion
+
+SCREEN COMMANDS
+
+Z       n --      Clear the n-th screen (by filling it with blanks
+COPY    n1 n2 --  Copy contents of screen n1 to screen n2
+
+LINE COMMANDS
+
+H       n --      Copy n-th line to PAD
+S       n --      Spread n-th line with blanks. Last line is lost
+D       n --      Delete n-th line (but keep a copy in PAD)
+E       n --      Erase n-th line by filling it with blanks
+R       n --      Replace n-th line with line in PAD
+P       n --      Put following text on line n (overwrite)
+I       n --      Insert text from PAD on line n. Last line is lost
+A       n --      Insert following text on line n. Last line is lost
+
+CURSOR COMMANDS
+
+TOP     --        Move cursor to top left position of the screen
+M       n --      Move the cursor n characters
+T       n --      Type n-th line of screen and copy line to PAD
+L       --        Re-list the screen under editing
+FIND    --        Find string stored in PAD. Move cursor to end of string
+DELETE  n --      Delete n characters in front of the cursor
+F       --        Find the first occurence of the following string (->PAD)
+N       --        Find the next occurence of the string stored in PAD
+B       --        Back cursor to the beginning of string just matched
+X       --        Delete the following text from current line
+TILL    --        Delete all chars from current line till end of following text
+C       --        Insert following text at cursor position. End of line pushed off

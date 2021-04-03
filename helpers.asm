@@ -391,7 +391,7 @@ _ADD32: LDA     R1.0
 ; ------------------------------
 ;       R1 = (R1)
 
-_AT:    LDR     R1              ; Get LSB
+_ATR1:  LDR     R1              ; Get LSB
         STA     R1.2            ; ... Store temp
         INW     R1              ; Bump
         LDR     R1              ; Get MSB
@@ -577,10 +577,10 @@ _USER:  LDA     UP.0            ; R3 = UP
         RTS                     ; Done
 
 ; ------------------------------
-;       _PICK
+;       __PICK
 ; NOTE: Index number on Minimal stack
 
-_PICK:  LDA     SP.0            ; R3 = SP
+__PICK: LDA     SP.0            ; R3 = SP
         STA     R3.0            ; :
         LDA     SP.1            ; :
         STA     R3.1            ; :
@@ -594,7 +594,7 @@ _PICK:  LDA     SP.0            ; R3 = SP
 ;       _ROLL
 ; NOTE: Index number on Minimal stack
 
-_ROLL:  LDS     3               ; Get index number
+__ROLL: LDS     3               ; Get index number
         STA     R3.3            ; Prepare loop counter
         PHS                     ; Push as parameter for _PICK
         JPS     _PICK           ; Pick n:th element in R1

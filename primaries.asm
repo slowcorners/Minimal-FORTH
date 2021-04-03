@@ -101,18 +101,26 @@ HDIGIT: DB      ^5 "DIGI" ^'T'                          ; ***** DIGIT
 DIGIT:  DW      DIGIT0
 DIGIT0: JPS     _POP21          ; R2 = base, R1 = char
         LDA     R1.0            ; Get character into A
-        SBI     '0'             ; Assume '0' - '9'
-        BMI     DIGI88          ; Oops! Negative
+        CPI     'A'             ; Greater or equal to 'A'?
+        BMI     DIGI10          ; NO: Then it has to be '0' - '9'
+        CPI     '['             ; Less than '[' (i.e. 'A' - 'Z')?
+        BPL     DIGI88          ; NO: Not a digit
+        SBI     55              ; A becomes 10
+        JPA     DIGI20          ; Go check against base
+        ; '0' - '9' case
+DIGI10: SBI     '0'             ; Assume '0' - '9'
+        BMI     DIGI88          ; Oops! Negative, not a digit
         CPI     10              ; Greater than 9?
-        BMI     DIGI10          ; No, it is 0 - 9
-        ; 'A' - 'Z' case
-        SBI     7               ; ch -= ('A' - '0') + 10
-DIGI10: CPA     R2.0            ; Greater than base?
-        BMI     DIGI77
-        JPA     DIGI88
+        BPL     DIGI88          ; YES: Not a digit
+        ; Check result against base
+DIGI20: CPA     R2.0            ; Less than base?
+        BMI     DIGI77          ; YES: Conversion done
+        JPA     DIGI88          ; NO: Not a digit
+        ; Conversion successful
 DIGI77: STA     R1.0            ; Store binary value
         JPS     _PUSH1          ; Push the value
         JPA     PUSHT           ; Push TRUE; NEXT
+        ; Not a digit
 DIGI88: JPA     PUSHF           ; Push FALSE; NEXT
 
 HPFIND: DB      ^6 "(FIND" ^')'                         ; ***** (FIND)
@@ -159,7 +167,7 @@ PFIN30: INW     R1              ; Bump NFA pointer
         DEB     R2.2            ; Decrement character counter
         CPI     0               ; End of name field?
         BNE     PFIN30          ; NO: Step to next char
-        JPS     _AT             ; YES: R1 = (R1)
+        JPS     _ATR1           ; YES: R1 = (R1)
         LDA     R1.1            ; At end of dictionary?
         CPI     0               ; :
         BNE     PFIN10          ; NO: Try this word for match
@@ -219,45 +227,13 @@ ENCL60: JPS     _PUSH2          ; Push i twice to continue next round ...
         JPS     _PUSH2          ; : ... by scanning the <NUL>
         JPA     NEXT            ; Done
 
-HEMIT:  DB      ^4 "EMI" ^'T'                           ; ***** EMIT
-        DW      HENCL
-EMIT:   DW      EMIT0
-EMIT0:  JPS     _POP1           ; Get character
-        LDA     R1.0            ; Send char to terminal
-        OUT                     ; :
-        LDI     34              ; OUT++
-        STA     R2.0            ; : R2 = Index to OUT
-        JPS     _USER           ; : R3 = Addr to OUT
-        JPS     _LD16           ; : R1 = OUT
-        INW     R1              ; : R1++
-        JPS     _ST16           ; : OUT = R1'
-        JPA     NEXT            ; Done
-
-HKEY:   DB      ^3 "KE" ^'Y'                            ; ***** KEY
-        DW      HEMIT
-KEY:    DW      KEY0
-KEY0:   INP                     ; Get char form terminal
-        CPI     0xFF            ; Did we get a character?
-        BEQ     KEY0            ; NO: Try again
-        STA     R1.0            ; YES: Push character
-        CLB     R1.1            ; :
-        JPA     PUSH            ; Push R1; NEXT
-
-HQTERM: DB      ^9 "?TERMINA" ^'L'                      ; ***** ?TERMINAL
-        DW      HKEY
-QTERM:  DW      QTERM0
-QTERM0: CLW     R1              ; Default FALSE to return
-        INP                     ; Get char from terminal
-        CPI     0xFF            ; Did we get a character?
-        BEQ     QTER10          ; NO: Return FALSE
-        DEW     R1              ; Make default FALSE into TRUE
-QTER10: JPA     PUSH            ; Push R1; NEXT
+; NOTE: EMIT, KEY, ?TERMINAL and CR moved to "extras" as they have been
+;       implemented as vectored functions in Minimal-FORTH
 
 HCMOVE: DB      ^5 "CMOV" ^'E'                          ; ***** CMOVE
-        DW      HQTERM
+        DW      HENCL
 CMOVE:  DW      CMOVE0
-CMOVE0: JPS     _POP3           ; R3 = count
-        JPS     _POP21          ; R2 = dst, R1 = src
+CMOVE0: JPS     _POP321         ; R3 = count, R2 = dst, R1 = src
 CMOV10: LDR     R1              ; Get byte from source
         STR     R2              ; Store to destination
         INW     R1              ; Bump source pointer
@@ -412,7 +388,11 @@ R0:     JPS     _RGET1          ; -(SP) = (RP)
 HZEQU:  DB      ^2 "0" ^'='                             ; ***** 0=
         DW      HR
 ZEQU:   DW      ZEQU0
-ZEQU0:  LDR     SP              ; Get low byte
+ZEQU0:  JPS     _ZEQU
+        JPA     NEXT
+        ;
+_ZEQU:  CLW     R1              ; Assume FALSE
+        LDR     SP              ; Get low byte
         CPI     0               ; Is it zero?
         BNE     ZEQU10          ; NO: Return FALSE
         INW     SP              ; YES: Have to inspect
@@ -420,22 +400,32 @@ ZEQU0:  LDR     SP              ; Get low byte
         CPI     0               ; Is it zero?
         BNE     ZEQU20          ; NO: Return FALSE
         INW     SP              ; Make POP complete
-        JPA     PUSHT           ; YES: Return TRUE
+        DEW     R1              ; Make TRUE flag
+        JPS     _PUSH1          ; YES: Return TRUE
+        RTS                     ; Done
 ZEQU10: INW     SP              ; POP argument off dstack
 ZEQU20: INW     SP              ; : Make POP complete
-        JPA     PUSHF           ; Return FALSE
+        JPS     _PUSH1          ; Return FALSE
+        RTS                     ; Done
 
 HZLESS: DB      ^2 "0" ^'<'                             ; ***** 0<
         DW      HZEQU
 ZLESS:  DW      ZLESS0
-ZLESS0: INW     SP              ; Inspect high byte only
+ZLESS0: JPS     _ZLESS
+        JPA     NEXT
+        ;
+_ZLESS: CLW     R1              ; Assume FALSE
+        INW     SP              ; Inspect high byte only
         LDR     SP              ; Get high byte
         CPI     0               ; Is high byte negative?
         BMI     ZLES10          ; YES: Return TRUE
         INW     SP              ; NO: POP high byte also
-        JPA     PUSHF           ; Return FALSE
+        JPS     _PUSH1          ; Return FALSE
+        RTS                     ; Done
 ZLES10: INW     SP              ; POP high byte also
-        JPA     PUSHT           ; Return TRUE
+        DEW     R1              ; Make TRUE flag
+        JPS     _PUSH1          ; Return TRUE
+        RTS                     ; Done
 
 HPLUS:  DB      ^1 ^'+'                                 ; ***** +
         DW      HZLESS
@@ -469,50 +459,72 @@ DMINU0: JPS     _DPOP1          ; Get operand
 HPICK:  DB      ^4 "PIC" ^'K'                           ; ***** PICK
         DW      HDMINU
 PICK:   DW      PICK0
-PICK0:  JPS     _POP1           ; Get index number
+PICK0:  JPS     _PICK
+        JPA     NEXT
+        ;
+_PICK:  JPS     _POP1           ; Get index number
         LDA     R1.0            ; Push onto Minimal stack
         PHS                     ; :
-        JPS     _PICK           ; R1 = n(SP)
+        JPS     __PICK          ; R1 = n(SP)
         PLS                     ; Remove index number
-        JPA     PUSH            ; -(SP) = R1; NEXT
+        JPS     _PUSH1          ; -(SP) = R1
+        RTS                     ; Done
 
 HROLL:  DB      ^4 "ROL" ^'L'                           ; ***** ROLL
         DW      HPICK
 ROLL:   DW      ROLL0
-ROLL0:  JPS     _POP1           ; Get index number
+ROLL0:  JPS     _ROLL
+        JPA     NEXT
+        ;
+_ROLL:  JPS     _POP1           ; Get index number
         LDA     R1.0            ; Push onto Minimal stack
         PHS                     ; :
-        JPS     _ROLL           ; R1 = n(SP)
+        JPS     __ROLL          ; R1 = n(SP)
         PLS                     ; Remove index number
-        JPA     NEXT            ; Done
+        RTS                     ; Done
 
 HOVER:  DB      ^4 "OVE" ^'R'                           ; ***** OVER
         DW      HROLL
 OVER:   DW      OVER0
-OVER0:  JPS     _POP2           ; n1 n2 -- n1 n2 n1
+OVER0:  JPS     _OVER
+        JPA     NEXT
+        ;
+_OVER:  JPS     _POP2           ; n1 n2 -- n1 n2 n1
         JPS     _GET1           ; :
         JPS     _PUSH2          ; :
-        JPA     PUSH            ; :
+        JPS     _PUSH1          ; :
+        RTS
 
 HDROP:  DB      ^4 "DRO" ^'P'                           ; **** DROP
         DW      HOVER
 DROP:   DW      DROP0
-DROP0:  LDI     2               ; n1 --
+DROP0:  JPS     _DROP
+        JPA     NEXT
+        ;
+_DROP:  LDI     2               ; n1 --
         ADW     SP              ; :
-        JPA     NEXT            ; Done
+        RTS                     ; Done
 
 HSWAP:  DB      ^4 "SWA" ^'P'                           ; **** SWAP
         DW      HDROP
 SWAP:   DW      SWAP0
-SWAP0:  JPS     _POP21          ; n1 n2 -- n2 n1
+SWAP0:  JPS     _SWAP
+        JPA     NEXT
+        ;
+_SWAP:  JPS     _POP21          ; n1 n2 -- n2 n1
         JPS     _PUSH2          ; :
-        JPA     PUSH            ; :
+        JPS     _PUSH1          ; :
+        RTS                     ; Done
 
 HDUP:   DB      ^3 "DU" ^'P'                            ; **** DUP
         DW      HSWAP
 DUP:    DW      DUP0
-DUP0:   JPS     _GET1           ; n1 -- n1 n1
-        JPA     PUSH            ; :
+DUP0:   JPS     _DUP
+        JPA     NEXT
+        ;
+_DUP:   JPS     _GET1           ; n1 -- n1 n1
+        JPS     _PUSH1          ; :
+        RTS
 
 HTOVER: DB      ^5 "2OVE" ^'R'                          ; ***** 2OVER
         DW      HDUP
@@ -558,12 +570,15 @@ TDUP0:  JPS     _POP2           ; OVER
 HPSTOR: DB      ^2 "+" ^'!'                             ; ***** +!
         DW      HTDUP
 PSTOR:  DW      PSTOR0
-PSTOR0: JPS     _POP3           ; R3 = addr
+PSTOR0: JPS     _PSTOR
+        JPA     NEXT
+        ;
+_PSTOR: JPS     _POP3           ; R3 = addr
         JPS     _POP2           ; R2 = incr
         JPS     _LD16           ; R1 = (R3)
         JPS     _ADD16          ; R1 = R1 + R2
         JPS     _ST16           ; (R3) = R1
-        JPA     NEXT            ; Done
+        RTS                     ; Done
 
 HTOGGL: DB      ^6 "TOGGL" ^'E'                         ; ***** TOGGLE
         DW      HPSTOR
@@ -593,9 +608,13 @@ TBANK0: JPS     _POP1           ; Get bank number from data stack into R1
 HAT:    DB      ^1 ^'@'                                 ; ***** @
         DW      HTBANK
 AT:     DW      AT0
-AT0:    JPS     _POP3           ; R3 = addr
+AT0:    JPS     _AT
+        JPA     NEXT
+        ;
+_AT:    JPS     _POP3           ; R3 = addr
         JPS     _LD16           ; R1 = (R3)
-        JPA     PUSH            ; -(SP) = R1; NEXT
+        JPS     _PUSH1           ; -(SP) = R1
+        RTS
 
 HCAT:   DB      ^2 "C" ^'@'                             ; ***** C@
         DW      HAT
@@ -609,10 +628,13 @@ CAT0:   CLW     R1              ; R1 = 0
 HSTORE: DB      ^1 ^'!'                                 ; ***** !
         DW      HCAT
 STORE:  DW      STORE0
-STORE0: JPS     _POP3           ; R3 = addr
+STORE0: JPS     _STORE
+        JPA     NEXT
+        ;
+_STORE: JPS     _POP3           ; R3 = addr
         JPS     _POP1           ; R1 = data
         JPS     _ST16           ; (R3) = R1
-        JPA     NEXT            ; Done
+        RTS                     ; Done
 
 HCSTOR: DB      ^2 "C" ^'!'                             ; ***** C!
         DW      HSTORE

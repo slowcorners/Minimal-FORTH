@@ -97,7 +97,12 @@ BSCR:   DW      DOCON 1
 
 HPORIG: DB      ^7 "+ORIGI" ^'N'                        ; ***** +ORIGIN
         DW      HBSCR
-PORIG:  DW      DOCOL LIT ORIGIN PLUS SEMIS
+        ; speed++
+PORIG:  DW      PORIG0 ; DOCOL LIT ORIGIN PLUS SEMIS
+PORIG0: JPS     _POP2           ; R2 = offset
+        JPS     _PORIG          ; R3 = &ORIGIN[R2]
+        JPS     _PUSH3          ; Push result
+        JPA     NEXT            ; Done
 
 ; ------------------------------
 ; USER VARIABLES
@@ -244,55 +249,108 @@ LSHF10: LDA     R1.0
 HONEP:  DB      ^2 "1" ^'+'                             ; ***** 1+
         DW      HLSHFT
 ONEP:   DW      ONEP0
-ONEP0:  
-        JPS     _POP1
-        LDA     R1.0
-        INC
-        STA     R1.0
-        LDA     R1.1
-        ACI     0
-        STA     R1.1
+ONEP0:  JPS     _POP1
+        INW     R1
         JPA     PUSH
 
 HTWOP:  DB      ^2 "2" ^'+'                             ; ***** 2+
         DW      HONEP
 TWOP:   DW      TWOP0
 TWOP0:  JPS     _POP1
-        LDA     R1.0
-        ADI     2
-        STA     R1.0
-        LDA     R1.1
-        ACI     0
-        STA     R1.1
+        LDI     2
+        ADW     R1
         JPA     PUSH
 
 HHERE:  DB      ^4 "HER" ^'E'                           ; ***** HERE
         DW      HTWOP
-HERE:   DW      DOCOL DP AT SEMIS
+        ; speed++
+HERE:   DW      HERE0 ; DOCOL DP AT SEMIS
+HERE0:  JPS     _HERE
+        JPA     NEXT
+        ;
+_HERE:  LDI     18              ; USER[18] (DP)
+        STA     R2.0            ; :
+        JPS     _USER           ; R3 = &USER[18]
+        JPS     _LD16           ; R1 = USER[18]
+        JPS     _PUSH1          ; -(SP) = Result
+        RTS                     ; Done
 
 HALLOT: DB      ^5 "ALLO" ^'T'                          ; ***** ALLOT
         DW      HHERE
-ALLOT:  DW      DOCOL DP PSTOR SEMIS
+        ; speed++
+ALLOT:  DW      ALLOT0 ; DOCOL DP PSTOR SEMIS
+ALLOT0: JPS     _ALLOT
+        JPA     NEXT
+        ;
+_ALLOT: LDI     18              ; USER[18] (DP)
+        STA     R2.0            ; :
+        JPS     _USER           ; R3 = &USER[18]
+        JPS     _LD16           ; R1 = USER[18]
+        JPS     _POP2           ; Get increment
+        LDA     R1.0            ; LSB
+        ADA     R2.0            ; :
+        STA     R1.0            ; :
+        LDA     R1.1            ; MSB
+        ACA     R2.1            ; :
+        STA     R1.1            ; :
+        JPS     _ST16           ; :
+        RTS                     ; Done
 
 HCOMMA: DB      ^1 ^','                                 ; ***** ,
         DW      HALLOT
-COMMA:  DW      DOCOL HERE STORE TWO ALLOT SEMIS
+        ; speed++
+COMMA:  DW      COMMA0 ; DOCOL HERE STORE TWO ALLOT SEMIS
+COMMA0: JPS     _COMMA
+        JPA     NEXT
+        ;
+_COMMA: JPS     _HERE           ; HERE
+        JPS     _STORE          ; STORE
+        CLW     R1              ; 2 ALLOT
+        LDI     2               ; :
+        ADW     R1              ; :
+        JPS     _PUSH1          ; :
+        JPS     _ALLOT          ; :
+        RTS                     ; Done
 
 HSUB:   DB      ^1 ^'-'                                 ; ***** -
         DW      HCOMMA
-SUB:    DW      DOCOL MINUS PLUS SEMIS
+        ; speed++
+SUB:    DW      SUB0 ; DOCOL MINUS PLUS SEMIS
+SUB0:   JPS     _SUB
+        JPA     NEXT
+        ;
+_SUB:   JPS     _POP21          ; R1 = R1 - R2
+        LDA     R1.0            ; LSB
+        SBA     R2.0            ; :
+        STA     R1.0            ; :
+        LDA     R1.1            ; MSB
+        SCA     R2.1            ; :
+        STA     R1.1            ; :
+        JPS     _PUSH1          ; Push result
+        RTS                     ; Done
 
 HEQUAL: DB      ^1 ^'='                                 ; ***** =
         DW      HSUB
-EQUAL:  DW      DOCOL SUB ZEQU SEMIS
+        ; speed++
+EQUAL:  DW      EQUAL0 ; DOCOL SUB ZEQU SEMIS
+EQUAL0: JPS     _SUB
+        JPS     _ZEQU
+        JPA     NEXT
 
 HLESS:  DB      ^1 ^'<'                                 ; ***** <
         DW      HEQUAL
-LESS:   DW      DOCOL SUB ZLESS SEMIS
+        ; speed++
+LESS:   DW      LESS0 ; DOCOL SUB ZLESS SEMIS
+LESS0:  JPS     _SUB
+        JPS     _ZLESS
+        JPA     NEXT
 
 HGREAT: DB      ^1 ^'>'                                 ; ***** >
         DW      HLESS
-GREAT:  DW      DOCOL SWAP LESS SEMIS
+        ; speed++
+GREAT:  DW      GREAT0 ; DOCOL SWAP LESS SEMIS
+GREAT0: JPS     _SWAP
+        JPA     LESS0
 
 HROT:   DB      ^3 "RO" ^'T'                            ; ***** ROT
         DW      HGREAT
@@ -304,20 +362,30 @@ ROT0:   JPS     _POP321
 
 HSPACE: DB      ^5 "SPAC" ^'E'                          ; ***** SPACE
         DW      HROT
-SPACE:  DW      DOCOL BL EMIT SEMIS
+SPACE:  DW      SPACE0 ; DOCOL BL EMIT SEMIS
+SPACE0: LDI     CH_BL
+        STA     R1.0
+        CLB     R1.1
+        JPS     _PUSH1
+        JPS     _EMIT
+        JPA     NEXT
 
 HDDUP:  DB      ^4 "-DU" ^'P'                           ; ***** -DUP
         DW      HSPACE
 DDUP:   DW      DDUP0
-DDUP0:  JPS     _GET1
+DDUP0:  JPS     _DDUP
+        JPA     NEXT
+        ;
+_DDUP:  JPS     _GET1
         LDA     R1.0
         CPI     0
         BNE     DDUP10
         LDA     R1.1
         CPI     0
         BNE     DDUP10
-        JPA     NEXT
-DDUP10: JPA     PUSH
+        RTS
+DDUP10: JPS     _PUSH1
+        RTS
 
 HTRAV:  DB      ^8 "TRAVERS" ^'E'                       ; ***** TRAVERSE
         DW      HDDUP
@@ -696,7 +764,8 @@ QUIT20: DW      BRAN +QUIT10
 HABORT: DB      ^5 "ABOR" ^'T'                          ; ***** ABORT
         DW      HQUIT
 ABORT:  DW      DOCOL
-ABOR10: DW      RPSTO SPSTO DEC SPACE CR PDOTQ
-        DB      19 "Minimal-FORTH"
-        DB      32 "v" 32 "0.1"
-        DW      FORTH DEFIN QUIT
+ABOR10: DW      RPSTO SPSTO DEC SPACE
+        DW      PAD AT LIT COLD_MAGIC SUB ; ZBRAN +ABOR20
+        DW      ZERO PAD STORE CR PDOTQ
+        DB      13 "Minimal-FORTH"
+ABOR20: DW      FORTH DEFIN QUIT

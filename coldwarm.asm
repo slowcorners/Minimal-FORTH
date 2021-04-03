@@ -34,8 +34,14 @@ COLD10: ; Init FORTH registers
         DW      LIT 34 PORIG AT LIT 36 PORIG AT
         DW      OVER SUB ERASE
         ; Initialize some of the user variables
-        DW      ZERO OUT STORE
-        DW      FIRST AT USE STORE
-        DW      FIRST AT PREV STORE
+        DW      ZERO IN STORE ZERO OUT STORE
+        DW      FIRST AT USE STORE FIRST AT PREV STORE
+        ; Set minimum environment for autoexec of SCR #1
+        DW      FORTH DEFIN DEC ZERO BLK STORE LBRAC
+        ; Try to load ("autoexec") SCR #1
+        DW      ONE BLOCK DUP CAT LIT CH_BSL EQUAL
+        DW      SWAP ONEP CAT BL EQUAL AND ZBRAN +COLD20
+;        DW      ONE LOAD
+        DW      LIT COLD_MAGIC PAD STORE
         ; Continue via ABORT
-        DW      ABORT
+COLD20: DW      ABORT

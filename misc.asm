@@ -2,7 +2,7 @@
 ; MISCELLANEOUS HIGHER LEVEL
 
 HTICK:  DB      ^^1 ^39                                 ; ***** '
-        DW      HARROW
+        DW      HQUOTE
 TICK:   DW      DOCOL DFIND ZEQU ZERO QERR DROP LITER SEMIS
 
 HFORGE: DB      ^6 "FORGE" ^'T'                         ; ***** FORGET
@@ -156,7 +156,8 @@ INDE20: DW      XLOOP +INDE10
 HVLIST: DB      ^5 "VLIS" ^'T'                          ; ***** VLIST
         DW      HINDEX
 VLIST:  DW      DOCOL LIT 128 OUT STORE CONT AT AT
-VLIS10: DW      OUT AT LIT 28 GREAT ZBRAN +VLIS20
+VLIS10: DW      OUT AT CL LIT 10 SUB
+        DW      GREAT ZBRAN +VLIS20
         DW      CR ZERO OUT STORE
 VLIS20: DW      DUP IDDOT SPACE PFA LFA AT
         DW      DUP ZEQU QTERM OR ZBRAN +VLIS10
@@ -166,16 +167,8 @@ HSCODE: DB      ^^5 ";COD" ^'E'                         ; ***** ;CODE
         DW      HVLIST
 SCODE:  DW      DOCOL QCSP COMP PSCOD LBRAC SMUDG SEMIS
 
-HCR:    DB      ^2 "C" ^'R'                             ; ***** CR
-        DW      HSCODE
-CR:     DW      DOCOL LIT 13 EMIT LIT 10 EMIT SEMIS
-
-HNOOP:  DB      ^4 "NOO" ^'P'                           ; ***** NOOP
-        DW      HCR
-NOOP:   DW      DOCOL SEMIS
-
 HBYE:   DB      ^3 "BY" ^'E'                            ; ***** BYE
-        DW      HNOOP
+        DW      HSCODE
 BYE:    DW      BYE0
 BYE0:   LDI     0               ; Select EEPROM bank 0
         BNK                     ; :

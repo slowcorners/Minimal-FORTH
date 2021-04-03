@@ -1,0 +1,10 @@
+                                                              ORG     0x8000
+                                                      
+8000 0E 07                                                    LDI     7
+8002 11 07                                                    CPI     7
+8004 3E 0C 80                                                 BPL     TRUE
+8007 0E 00                                                    LDI     0
+8009 14 09 80                                         STOP:   JPA     STOP
+                                                      
+800C 0E FF                                            TRUE:   LDI     -1
+800E 14 09 80                                                 JPA     STOP
