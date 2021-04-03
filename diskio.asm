@@ -79,8 +79,8 @@ MESS30: DW      SEMIS
 HLOAD:  DB      ^4 "LOA" ^'D'                           ; ***** LOAD
         DW      HMESS
 LOAD:   DW      DOCOL BLK AT TOR IN AT TOR ZERO IN
-        DW      STORE BSCR STAR BLK STORE INTER FROMR
-        DW      IN STORE FROMR BLK STORE SEMIS
+        DW      STORE BSCR STAR BLK STORE INTER
+        DW      FROMR IN STORE FROMR BLK STORE SEMIS
 
 HARROW: DB      ^^3 "--" ^'>'                           ; ***** -->
         DW      HLOAD

@@ -199,7 +199,7 @@ ENCL10: LDR     R1              ; Get char from input
         CPA     R3.0            ; Is it a delimiter?
         BNE     ENCL20          ; NO: We have the start of next token
         INW     R1              ; Bump to next char ...
-        INB     R2.0            ; ... also increase index
+        INW     R2              ; ... also increase index
         JPA     ENCL10          ; Go back to look at next char
         ; Start of token
 ENCL20: JPS     _PUSH2          ; Push result n1 (first char of token)
@@ -209,22 +209,19 @@ ENCL30: LDR     R1              ; Get char from input
         CPA     R3.0            ; Is it a delimiter?
         BEQ     ENCL40          ; YES: We have the end of the token
         INW     R1              ; Bump to next char ...
-        INB     R2.0            ; ... also increase index
+        INW     R2              ; ... also increase index
         JPA     ENCL30          ; Go back to look at next char
         ; End of token
 ENCL40: JPS     _PUSH2          ; Push result n2 (ending delimiter)
-        INB     R2.0            ; Also push n3 ...
+        INW     R2              ; Also push n3 ...
         JPS     _PUSH2          ; : ... (index to first non-scanned char)
         JPA     NEXT            ; Done
         ; <NUL> word found
 ENCL50: JPS     _PUSH2          ; Push i (index to <NUL>)
-        INB     R2.0            ; Push i + 1 (a null is one character long)
-        JPS     _PUSH2          ; :
-        JPS     _PUSH2          ; :
-        JPA     NEXT            ; Done
+        INW     R2              ; Push i + 1 (a null is one character long)
         ; Token ends with a <NUL>
-ENCL60: JPS     _PUSH2          ; Push i twice to continue next round ...
-        JPS     _PUSH2          ; : ... by scanning the <NUL>
+ENCL60: JPS     _PUSH2          ; :
+        JPS     _PUSH2          ; :
         JPA     NEXT            ; Done
 
 ; NOTE: EMIT, KEY, ?TERMINAL and CR moved to "extras" as they have been

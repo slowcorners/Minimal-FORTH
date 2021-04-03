@@ -614,8 +614,8 @@ WORD:   DW      DOCOL BLK AT ZBRAN +WORD10
         DW      BLK AT BLOCK BRAN +WORD20
 WORD10: DW      TIB AT
 WORD20: DW      IN AT PLUS SWAP ENCL
-        DW      HERE LIT 34 BLANK IN
-        DW      PSTOR OVER SUB TOR R HERE CSTOR PLUS
+        DW      HERE LIT 34 BLANK IN PSTOR
+        DW      OVER SUB TOR R HERE CSTOR PLUS
         DW      HERE ONEP FROMR CMOVE SEMIS
 
 HPNUMB: DB      ^8 "(NUMBER" ^')'                       ; ***** (NUMBER)
@@ -765,7 +765,7 @@ HABORT: DB      ^5 "ABOR" ^'T'                          ; ***** ABORT
         DW      HQUIT
 ABORT:  DW      DOCOL
 ABOR10: DW      RPSTO SPSTO DEC SPACE
-        DW      PAD AT LIT COLD_MAGIC SUB ; ZBRAN +ABOR20
+        DW      PAD AT LIT COLD_MAGIC SUB ZBRAN +ABOR20
         DW      ZERO PAD STORE CR PDOTQ
         DB      13 "Minimal-FORTH"
 ABOR20: DW      FORTH DEFIN QUIT

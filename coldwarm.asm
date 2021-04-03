@@ -41,7 +41,6 @@ COLD10: ; Init FORTH registers
         ; Try to load ("autoexec") SCR #1
         DW      ONE BLOCK DUP CAT LIT CH_BSL EQUAL
         DW      SWAP ONEP CAT BL EQUAL AND ZBRAN +COLD20
-;        DW      ONE LOAD
-        DW      LIT COLD_MAGIC PAD STORE
+        DW      ONE LOAD LIT COLD_MAGIC PAD STORE
         ; Continue via ABORT
 COLD20: DW      ABORT
