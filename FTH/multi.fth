@@ -2,225 +2,125 @@ FORTH DEFINITIONS
 
 VOCABULARY MULTI IMMEDIATE
 
-: TASK
-  <BUILDS
-    0 ,                     \ Delay
-    ' NOOP CFA ,            \ :CFA
-    0 ,                     \ :NEXT
-  DOES>
-;
-
 MULTI DEFINITIONS
 
-0 VARIABLE TASKS
+: :CFA      2+ ;            \ taddr -- taddr:CFA
+: :NEXT     4 + ;           \ taddr -- taddr:NEXT
+: NEXT@     :NEXT @ ;       \ prevL -- prevL'
+: @NEXT     @ :NEXT ;       \ prevl -- prevL'
 
-: :CFA    2+ ;              \ task-addr -- task-add:cfa
-: :NEXT   4 + ;             \ task-addr -- task-add:next
+\ Add or subtract current task delay from next task delay
+: +-NEXT    SWAP :NEXT @ +! ;       \ taddr delay --
+: --NEXT    DUP @ MINUS +-NEXT ;    \ taddr --
+: ++NEXT    DUP @ +-NEXT ;          \ taddr --
 
-: RUN     :CFA @ EXECUTE ;  \ task-addr --
-
-\ Is prevL at the end of the list?
-: END?    @ 0= ;            \ prevL -- end-flag
-
-\ Is prevL pointing to the task we are looking for?
-: MATCH?  @ = ;             \ task-addr prevL -- flag
-
-\ Calculate number of ticks since last check
-\ Also set current tick count as new baseline
-: +TICKS                    \ -- ticksElapsed
-  #MILLIS SYSTEM DROP       \ newTicks
-  DUP TICKS @ -             \ newTicks ticksElapsed
-  SWAP TICKS !              \ ticksElapsed
-;
-
-\ ----------------------------------------------------------------------
-\ Subtract <ticks> from task at taddr and return "unused ticks" ...
-\ ... as task counter is not decremented below zero
-\ If all ticks "are used", then return 0 for ticks
-
-: --DELAY                   \ taddr ticks -- taddr ticks'
-  OVER @ SWAP - DUP 0<      \ taddr +-ticks' neg?
-  IF
-    OVER 0 SWAP !           \ taddr -ticks'
-    MINUS                   \ taddr ticks'
-  ELSE
-    2DUP SWAP !             \ taddr ticks'
-    DROP 0                  \ taddr 0
-  ENDIF
-;
-
-\ Traverse the tasks in the waiting queue and distribute ticks passed
-: --DELAYS                  \ ticks --
-  TASKS @ SWAP              \ taddr ticks
-  BEGIN
-    OVER                    \ taddr ticks taddr!=0?
-    IF                      \ YES: There is a task to be inspected
-      --DELAY               \ taddr ticks'
-      SWAP :NEXT @ SWAP     \ taddr' ticks'
-    ENDIF
-    OVER 0= OVER 0= OR      \ taddr' ticks'
-  UNTIL
-  2DROP                     \
-;
-
-\ Pop first task from the task queue
-: POP                       \ -- taddr
-  TASKS DUP @               \ TASKS taddr0
-  SWAP OVER                 \ taddr0 TASKS taddr0
-  :NEXT @                   \ taddr0 TASKS taddr1
-  SWAP !                    \ taddr0
-  0 OVER :NEXT !            \ taddr0
-;
-
-\ Add delay of taddr to next task (if next task exists)
-: +-NEXT                    \ taddr +-delay --
-  OVER :NEXT @ -DUP         \ taddr +-delay nextL?
-  IF                        \ YES: Add the delay
-    +!                      \ taddr
-  ELSE                      \ NO: No next, nothing to do
-    DROP                    \ delay
-  ENDIF
-  DROP                      \
-;
-
-\ Add or subract taddr delay from next task
-: ++NEXT  DUP @ +-NEXT ;        \ taddr --
-: --NEXT  DUP @ MINUS +-NEXT ;  \ taddr --
-
-\ Subtract *prevL delay from taddr delay
-: DELAY--                   \ taddr prevL --
-  @ @ MINUS SWAP +!         \
-;
-
-\ Step to next task
-: >>NEXT                    \ prevL -- prevL'
-  @ :NEXT                   \ prevL'
+\ Calculate delay diff between task at taddr
+\ and task under inspection
+: DELAY-DIFF                \ taddr prevL -- taddr prevL diff
+    OVER @ OVER @ @ -
 ;
 
 \ Insert task at position pointed by prevL
-: +QUEUE                    \ taddr prevL --
-    OVER :NEXT              \ taddr prevL taddr.next
-    OVER @                  \ taddr prevL taddr.next *prevL
+: INSERT                    \ taddr prevL --
+    OVER :NEXT              \ taddr prevL taddr.NEXT
+    OVER @                  \ taddr prevL taddr.NEXT *prevL
     SWAP !                  \ taddr prevL
-    OVER --NEXT             \ taddr prevL
-    !                       \
+    OVER --NEXT             \ Also adjust next task's delay
+    !
 ;
 
-\ Remove task pointed to by prevL
-: -QUEUE                    \ prevL -- taddr
-  DUP @ ++NEXT              \ prevL
-  DUP @ SWAP                \ taddr prevL
-  OVER :NEXT @              \ taddr prevL nextL
-  SWAP !                    \ taddr
-  0 OVER :NEXT !            \ taddr
+\ De-queue task at position pointed by prevL
+: DE-QUEUE                  \ taddr prevL --
+    OVER ++NEXT             \ Add this task's delay to next task
+    OVER :NEXT @            \ taddr prevL *taddr.NEXT
+    SWAP !                  \ taddr
+    :NEXT 0 SWAP !          \
 ;
 
-\ Is the requested delay smaller than ...
-\ ... that of the task pointed to by prevL?
-: QUEUE?                    \ task-addr prevL -- task-addr prevL flag
-  DUP @ 0=                  \ prevL pointing to end of list?
-  IF                        \ YES: End of list case. Insert!
-    2DUP ! TRUE             \ task-addr prevL true
-  ELSE                      \ NO: We are in middle of the list
-    OVER @ OVER @ @ <       \ task-addr prevL new<next?
-    IF                      \ YES: Insert here
-      2DUP +QUEUE TRUE      \ task-addr prevL true
-    ELSE                    \ NO: Step forward on caller level
-      FALSE                 \ task-addr prevL false
+\ Is prevL at the end of the list?
+: END?      0= ;            \ prevL -- flag
+
+\ Is prevL pointing to taddr?
+: MATCH?                    \ taddr prevL -- flag
+    -DUP                    \ At end of list? (i.e. prevL == 0)
+    IF                      \ Not at end, compare and leave flag
+        @ =                 \ flag
+    ELSE                    \ At end of list, leave false flag
+        DROP FALSE          \ false
     ENDIF
-  ENDIF
 ;
 
-\ Is this task currently in the task queue, i.e. is it waiting?
-: QUEUED?                   \ taddr -- [prevL | false]
-  TASKS                     \ taddr prevL
-  BEGIN
-    DUP END?                \ taddr prevL end?
-    IF                      \ YES: Stop looping and return false
-      2DROP FALSE FALSE     \ return-false loop-false
-    ELSE
-      2DUP MATCH?           \ taddr prevL match?
-      IF                    \ YES: Stop looping and return prevL
-        SWAP DROP FALSE     \ prevL loop-false
-      ELSE                  \ Not found: Continue looping
-        TRUE                \ task-addr prevL loop-true
-      ENDIF
-    ENDIF
-  WHILE
-    >>NEXT                  \ task-addr prevL'
-  REPEAT
-;                           \ [prevL | false]
-
-: DISPATCH                  \ --
-  +TICKS --DELAYS           \
-  TASKS @ -DUP              \ taddr
-  IF                        \ YES: taddr > 0
-    @ 0=                    \ delay==0?
-    IF                      \ YES: Run task
-      POP DUP RUN DROP      \
-    ENDIF
-  ENDIF
-;
-
-: <KEY>
+\ Find position where to insert task into queue
+: FIND-POS                  \ taddr prevL -- taddr prevL'
     BEGIN
-        (?TERMINAL) NOT
+        DUP @               \ taddr prevL {end-flag}
     WHILE
-        DISPATCH
-    REPEAT
-    (KEY)
+        DELAY-DIFF DUP 0<   \ taddr prevL diff {flag}
+        IF                  \ Task delay smaller case
+            OVER TASKS =    \ Inserting as first?
+            IF              \ YES: Just drop the diff
+                DROP        \ taddr prevL
+            ELSE
+                MINUS 2 PICK ! \ Update task's delay
+            ENDIF
+            [COMPILE] ;S    \ Right position found, stop here
+        ENDIF
+        DUP 0=
+        IF                  \ Delays equal case
+            2 PICK !        \ Set task delay to zero
+            @NEXT           \ Inser after this task
+            [COMPILE] ;S    \ taddr prevL' (stop here)
+        ENDIF               \ Task delay greater, go forward
+        2 PICK !            \ Adjust task delay
+        @NEXT               \ taddr prevL'
+    REPEAT                  \ taddr prevL'
 ;
 
-MAKE KEY <KEY>
+\ Is task at taddr queued for execution?
+: QUEUED?                   \ taddr -- <prevl | false>
+    TASKS
+    BEGIN
+        DUP @               \ taddr prevL {end-flag}
+    WHILE
+        2DUP MATCH?         \ taddr prevL {match?}
+        IF                  \ We have a match!
+            SWAP DROP       \ Stop here and leave prevL only
+            [COMPILE] ;S    \ prevL
+        ENDIF
+        @NEXT               \ taddr prevL' {prevl'==0}
+    REPEAT
+    2DROP FALSE             \ At end of list, leave a false flag
+;
 
 FORTH DEFINITIONS
 
-: RUNS      [COMPILE] ' CFA SWAP MULTI :CFA ! ;
+\ --------------------------------------------------------
+\ If task is queued for execution, de-queue the task
+\ otherwise do nothing
 
 : STOP                      \ taddr --
-  MULTI QUEUED? -DUP        \ [prevL | false]
-  IF                        \ YES: Task found
-    -QUEUE DROP             \
-  ENDIF                     \
+    MULTI                   \ Select context (compile time)
+    DUP QUEUED? -DUP        \ taddr <prevL | false>
+    IF                      \ taddr prevL
+        DE-QUEUE            \
+    ELSE                    \ taddr
+        DROP                \
+    ENDIF
 ;
+
+\ --------------------------------------------------------
+\ Set task's delay and queue it for later execution
 
 : AFTER                     \ taddr delay --
-  MULTI OVER !              \ taddr
-  TASKS @                   \ Tasks in the list?
-  IF                        \ YES:
-    TASKS                   \ taddr prevL
-    BEGIN
-      QUEUE? NOT            \ taddr prevL done?
-    WHILE
-      2DUP DELAY--          \ taddr prevL
-      >>NEXT                \ taddr prevL'
-    REPEAT
-    2DROP
-  ELSE                      \ NO: Empty task list case
-    TASKS !
-  ENDIF
+    MULTI                   \ Select context (compile time)
+    OVER STOP               \ Dequeue task if already queued
+    OVER !                  \ Set requested delay
+    TASKS FIND-POS INSERT   \
 ;
 
-: NOW     0 AFTER ;
 
-MULTI DEFINITIONS
+\ --------------------------------------------------------
+\ Run task now :-)
 
-\ ------------------------------------------------------------
-\ MULTI heartbeat: Blinks the LED once per second
+: NOW   0 AFTER ;
 
-TASK LED-ON
-TASK LED-OFF
-
-: +LED  32 1 #DIGITALWRITE SYSTEM LED-OFF 25 AFTER ;
-: -LED  32 0 #DIGITALWRITE SYSTEM LED-ON 125 AFTER ;
-
-LED-ON RUNS +LED
-LED-OFF RUNS -LED
-
-: BOOT 32 1 #PINMODE SYSTEM ;
-
-BOOT
-
-LED-ON NOW
-
-FORTH DEFINITIONS

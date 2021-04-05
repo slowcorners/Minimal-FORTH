@@ -553,18 +553,6 @@ _XCH16: JPS     _PUSH1          ; Temp = R1
         RTS                     ; Done
 
 ; ------------------------------
-;       +ORIGIN
-; NOTE: Index number in R2
-
-_PORIG: LDI     <ORIGIN         ; R3 = ORIGIN address
-        STA     R3.0            ; :
-        LDI     >ORIGIN         ; :
-        STA     R3.1            ; :
-        LDA     R2.0            ; Get index number
-        ADW     R3              ; Compute addr
-        RTS                     ; Done
-
-; ------------------------------
 ;       _USER
 ; NOTE: Index number in R2
 

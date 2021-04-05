@@ -25,11 +25,14 @@ NEXT10: LDR     WA              ; BC/TMP = (WA)+
         LDR     WA
         STA     TMP
         INW     WA
-;        LDA     DBG
-;        CPI     0
-;        BEQ     NEXT11
-;        JPS     DEBUG
-NEXT11: JPR     BC              ; jump @(BC/TMP)
+        INB     CLK0            ; Increment the fake clock tick counter
+        BNE     NEXT20          ; :
+        INB     CLK1            ; :
+        BNE     NEXT20          ; :
+        INB     CLK2            ; :
+        BNE     NEXT20          ; :
+        INB     CLK3            ; :
+NEXT20: JPR     BC              ; jump @(BC/TMP)
 
 ; ------------------------------
 ;       Push TRUE and FALSE

@@ -39,8 +39,8 @@ COLD10: ; Init FORTH registers
         ; Set minimum environment for autoexec of SCR #1
         DW      FORTH DEFIN DEC ZERO BLK STORE LBRAC
         ; Try to load ("autoexec") SCR #1
-        DW      ONE BLOCK DUP CAT LIT CH_BSL EQUAL
-        DW      SWAP ONEP CAT BL EQUAL AND ZBRAN +COLD20
-        DW      ONE LOAD LIT COLD_MAGIC PAD STORE
+        DW      ONE BLOCK DUP AT
+        DW      LIT MAGIC EQUAL ZBRAN +COLD20
+        DW      ONE LOAD LIT MAGIC LIT XUP STORE
         ; Continue via ABORT
 COLD20: DW      ABORT

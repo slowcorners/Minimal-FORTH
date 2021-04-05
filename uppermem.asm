@@ -1,14 +1,22 @@
 ; ----------------------------------------------------------------------
 ; UPPER MEMORY AREA
 
-        ORG     0xF5B9
+        ORG     0xF5B4
 
 XSP:    DB      0
 XTIB:   DB      0
         DS      210             ; TIB:      84
 XRP:    DB      0               ; RSTACK:  128
-XUP:    DB      0
-        DS      80              ; Room for 40 variables
+        ; 40 user variables
+XUP:    DW      0 0 0 0 0 0 0 0 ;  0
+        DW      0 0 0 0 0 0 0 0 ; 16
+        DW      0 0 0 0 0 0 0 0 ; 32
+        DW      0 0 0 0 0 0 0 0 ; 48
+XTASKS:
+XTASK0: DB      0               ; USER[64] is TASKS
+XTASK1: DB      0               ; :
+        DW      0 0 0 0 0 0 0   ; 66
+
 DSKBF:  DB      0
         DS      2055            ; 2 * 1028 bytes
 ENDBF:  DB      0
@@ -59,6 +67,15 @@ R3.3:   DB      0
 
 BC:     DB      0               ; "Hidden" registers
 TMP:    DB      0               ; (used by _AND8 _OR8 _XOR8)
+CHIN:   DB      0               ; Used by (?TERMINAL) and (KEY)
+CLK0:   DB      0               ; 32-bit fake clock tick counter
+CLK1:   DB      0               ; :
+CLK2:   DB      0               ; :
+CLK3:   DB      0               ; :
+
+; LSTCLK is used by th4 FORTH multitasker in order to keep track
+; of "delta ticks" since last DISPATCH run
+LSTCLK: DB      0               ; Last clock tick count LSB
 
 MEMEND: DS      0
      

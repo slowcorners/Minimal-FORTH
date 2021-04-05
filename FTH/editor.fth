@@ -2,9 +2,8 @@ VOCABULARY EDITOR IMMEDIATE
 
 EDITOR DEFINITIONS DECIMAL
 
-: MINMAX    >R SWAP MAX R> MIN ;
-: #OUTSIDE? 2 PICK >R MINMAX R> SWAP - ;
-: [R#]      R# @ 0 1023 MINMAX R# ! ;
+: #OUTSIDE? 2 PICK >R >< R> SWAP - ;
+: >R#<      R# @ 0 1023 >< R# ! ;
 
 : TEXT      HERE C/L 1+ BLANKS WORD HERE PAD C/L 1+ CMOVE ;
 : LINE      DUP -16 AND 23 ?ERROR SCR @ (LINE) DROP ;
@@ -74,7 +73,7 @@ EDITOR DEFINITIONS DECIMAL
 : #LAG      #LEAD DUP >R + C/L R> - ;
 
 : M
-    R# +! [R#]
+    R# +! >R#<
     CR #LOCATE 3 .R DROP
     SPACE #LEAD TYPE ASCII ^ EMIT #LAG TYPE ;
 
@@ -101,7 +100,7 @@ EDITOR DEFINITIONS DECIMAL
 : F     1 TEXT N ;
 : B     PAD C@ MINUS M ;
 : X     1 TEXT FIND PAD C@ DELETE 0 M ;
-: G     0 15 MINMAX C/L * R# ! 0 M ;
+: G     0 15 >< C/L * R# ! 0 M ;
 
 : TILL
     #LEAD + 1 TEXT 1LINE 0= 0 ?ERROR

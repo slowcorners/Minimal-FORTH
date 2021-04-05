@@ -103,12 +103,24 @@ PORIG0: JPS     _POP2           ; R2 = offset
         JPS     _PORIG          ; R3 = &ORIGIN[R2]
         JPS     _PUSH3          ; Push result
         JPA     NEXT            ; Done
+        ;
+_PORIG: LDI     <ORIGIN         ; R3 = ORIGIN address
+        STA     R3.0            ; :
+        LDI     >ORIGIN         ; :
+        STA     R3.1            ; :
+        LDA     R2.0            ; Get index number
+        ADW     R3              ; Compute addr
+        RTS                     ; Done
+
+HTICKS: DB      ^4 "FCL" ^'K'                          ; ***** FCLK
+        DW      HPORIG
+TICKS:  DW      DOCON CLK0
 
 ; ------------------------------
 ; USER VARIABLES
 
 HSZERO: DB      ^2 "S" ^'0'                             ; ***** S0
-        DW      HPORIG
+        DW      HTICKS
 SZERO:  DW      DOUSE 6
 
 HRZERO: DB      ^2 "R" ^'0'                             ; ***** R0
@@ -215,11 +227,15 @@ HBANK:  DB      ^4 "BAN" ^'K'                           ; ***** BANK
         DW      HPREV
 BANK:   DW      DOUSE 62
 
+HTASKS: DB      ^5 "TASK" ^'S'                          ; ***** TASKS
+        DW      HBANK
+TASKS:  DW      DOUSE 64
+
 ; END OF USER VARIABLES
 ; ------------------------------
 
 HRSHFT: DB      ^2 ">" ^'>'                             ; ***** >>
-        DW      HBANK
+        DW      HTASKS
 RSHFT:  DW      RSHFT0
 RSHFT0: JPS     _POP21
 RSHF10: LDA     R1.1
@@ -316,34 +332,35 @@ HSUB:   DB      ^1 ^'-'                                 ; ***** -
         DW      HCOMMA
         ; speed++
 SUB:    DW      SUB0 ; DOCOL MINUS PLUS SEMIS
-SUB0:   JPS     _SUB
-        JPA     NEXT
+SUB0:   JPS     _POP21          ; Get arguments
+        JPS     _SUB            ; Subtract
+        JPA     PUSH            ; Done
         ;
-_SUB:   JPS     _POP21          ; R1 = R1 - R2
-        LDA     R1.0            ; LSB
+_SUB:   LDA     R1.0            ; LSB
         SBA     R2.0            ; :
         STA     R1.0            ; :
         LDA     R1.1            ; MSB
         SCA     R2.1            ; :
         STA     R1.1            ; :
-        JPS     _PUSH1          ; Push result
         RTS                     ; Done
 
 HEQUAL: DB      ^1 ^'='                                 ; ***** =
         DW      HSUB
         ; speed++
 EQUAL:  DW      EQUAL0 ; DOCOL SUB ZEQU SEMIS
-EQUAL0: JPS     _SUB
+EQUAL0: JPS     _POP21
+        JPS     _SUB
         JPS     _ZEQU
-        JPA     NEXT
+        JPA     PUSH
 
 HLESS:  DB      ^1 ^'<'                                 ; ***** <
         DW      HEQUAL
         ; speed++
 LESS:   DW      LESS0 ; DOCOL SUB ZLESS SEMIS
-LESS0:  JPS     _SUB
+LESS0:  JPS     _POP21
+        JPS     _SUB
         JPS     _ZLESS
-        JPA     NEXT
+        JPA     PUSH
 
 HGREAT: DB      ^1 ^'>'                                 ; ***** >
         DW      HLESS
@@ -362,13 +379,7 @@ ROT0:   JPS     _POP321
 
 HSPACE: DB      ^5 "SPAC" ^'E'                          ; ***** SPACE
         DW      HROT
-SPACE:  DW      SPACE0 ; DOCOL BL EMIT SEMIS
-SPACE0: LDI     CH_BL
-        STA     R1.0
-        CLB     R1.1
-        JPS     _PUSH1
-        JPS     _EMIT
-        JPA     NEXT
+SPACE:  DW      DOCOL BL EMIT SEMIS
 
 HDDUP:  DB      ^4 "-DU" ^'P'                           ; ***** -DUP
         DW      HSPACE
@@ -765,7 +776,7 @@ HABORT: DB      ^5 "ABOR" ^'T'                          ; ***** ABORT
         DW      HQUIT
 ABORT:  DW      DOCOL
 ABOR10: DW      RPSTO SPSTO DEC SPACE
-        DW      PAD AT LIT COLD_MAGIC SUB ZBRAN +ABOR20
-        DW      ZERO PAD STORE CR PDOTQ
+        DW      LIT XUP AT LIT MAGIC SUB ZBRAN +ABOR20
+        DW      ZERO LIT XUP STORE CR PDOTQ
         DB      13 "Minimal-FORTH"
 ABOR20: DW      FORTH DEFIN QUIT

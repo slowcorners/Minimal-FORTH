@@ -296,8 +296,12 @@ XOR0:   JPS     _POP21          ; R2 = oper2, R1 = oper1
         JPS     _XOR16          ; R1 = R1 ^ R2
         JPA     PUSH            ; Done
 
-HSPAT:  DB      ^3 "SP" ^'@'                            ; ***** SP@
+HNOT:   DB      ^3 "NO" ^'T'                            ; ***** NOT
         DW      HXOR
+NOT:    DW      ZEQU
+
+HSPAT:  DB      ^3 "SP" ^'@'                            ; ***** SP@
+        DW      HNOT
 SPAT:   DW      SPAT0
 SPAT0:  LDA     SP.0            ; Get stack pointer
         STA     R1.0            ; : into R1
@@ -385,43 +389,40 @@ R0:     JPS     _RGET1          ; -(SP) = (RP)
 HZEQU:  DB      ^2 "0" ^'='                             ; ***** 0=
         DW      HR
 ZEQU:   DW      ZEQU0
-ZEQU0:  JPS     _ZEQU
-        JPA     NEXT
+ZEQU0:  JPS     _POP1
+        JPS     _ZEQU
+        JPA     PUSH
         ;
-_ZEQU:  CLW     R1              ; Assume FALSE
-        LDR     SP              ; Get low byte
+_ZEQU:  LDA     R1.0            ; Get LSB
         CPI     0               ; Is it zero?
-        BNE     ZEQU10          ; NO: Return FALSE
-        INW     SP              ; YES: Have to inspect
-        LDR     SP              ; : high byte as well
+        BNE     _ZEQ10          ; NO: Return false flag
+        LDA     R1.1            ; Get MSB
         CPI     0               ; Is it zero?
-        BNE     ZEQU20          ; NO: Return FALSE
-        INW     SP              ; Make POP complete
-        DEW     R1              ; Make TRUE flag
-        JPS     _PUSH1          ; YES: Return TRUE
+        BNE     _ZEQ10          ; NO: Return false flag
+        ; Zero case
+        CLW     R1              ; True flag
+        DEW     R1              ; :
         RTS                     ; Done
-ZEQU10: INW     SP              ; POP argument off dstack
-ZEQU20: INW     SP              ; : Make POP complete
-        JPS     _PUSH1          ; Return FALSE
+        ; Non-zero case
+_ZEQ10: CLW     R1              ; False flag
         RTS                     ; Done
 
 HZLESS: DB      ^2 "0" ^'<'                             ; ***** 0<
         DW      HZEQU
 ZLESS:  DW      ZLESS0
-ZLESS0: JPS     _ZLESS
-        JPA     NEXT
+ZLESS0: JPS     _POP1
+        JPS     _ZLESS
+        JPA     PUSH
         ;
-_ZLESS: CLW     R1              ; Assume FALSE
-        INW     SP              ; Inspect high byte only
-        LDR     SP              ; Get high byte
-        CPI     0               ; Is high byte negative?
-        BMI     ZLES10          ; YES: Return TRUE
-        INW     SP              ; NO: POP high byte also
-        JPS     _PUSH1          ; Return FALSE
+_ZLESS: LDA     R1.1            ; Get MSB
+        CPI     0               ; Is it negative?
+        BMI     _ZLE10          ; YES: Return true flag
+        ; Zero or positive case
+        CLW     R1              ; NO: Return false flag
         RTS                     ; Done
-ZLES10: INW     SP              ; POP high byte also
-        DEW     R1              ; Make TRUE flag
-        JPS     _PUSH1          ; Return TRUE
+        ; Negative case
+_ZLE10: CLW     R1              ; True flag
+        DEW     R1              ; :
         RTS                     ; Done
 
 HPLUS:  DB      ^1 ^'+'                                 ; ***** +

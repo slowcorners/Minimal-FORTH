@@ -12,5 +12,6 @@ CH_DQUOTE   EQU     34
 CH_BSL      EQU     92
 CH_DEL      EQU     127
 
-COLD_MAGIC  EQU     0x3737      ; Nice "arbitrary bit pattern ;-)
+MAGIC       EQU     0x205C      ; Magic cookie
+                                ; : actually "\ " as an integer
                                 ; : used by COLD and ABORT
