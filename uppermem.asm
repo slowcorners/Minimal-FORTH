@@ -1,21 +1,54 @@
 ; ----------------------------------------------------------------------
 ; UPPER MEMORY AREA
 
-        ORG     0xF5B4
+        ORG     0xF5B0
 
 XSP:    DB      0
 XTIB:   DB      0
         DS      210             ; TIB:      84
-XRP:    DB      0               ; RSTACK:  128
-        ; 40 user variables
-XUP:    DW      0 0 0 0 0 0 0 0 ;  0
-        DW      0 0 0 0 0 0 0 0 ; 16
-        DW      0 0 0 0 0 0 0 0 ; 32
-        DW      0 0 0 0 0 0 0 0 ; 48
-XTASKS:
-XTASK0: DB      0               ; USER[64] is TASKS
-XTASK1: DB      0               ; :
-        DW      0 0 0 0 0 0 0   ; 66
+XRP:    DW      0 0             ; RSTACK:  128
+
+; ------------------------------
+; USER AREA (NON-MOVABLE!)
+
+XUP:
+_EOL:   DW      0x000A          ;  0: EOL       Default UNIX settings
+_ENTER: DW      0x0A            ;  2: ENTER     :
+_DEL:   DW      0x08            ;  4: DEL       :
+_S0:    DW      0               ;  6: S0
+_R0:    DW      0               ;  8: R0
+_TIB:   DW      0               ; 10: TIB
+_WIDTH: DW      0               ; 12: WIDTH
+_WARN:  DW      0               ; 14: WARNING
+_FENCE: DW      0               ; 16: FENCE
+_DP:    DW      0               ; 18: DP
+_VOCL:  DW      0               ; 20: VOC-LINK
+_FIRST: DW      0               ; 22: FIRST
+_LIMIT: DW      0               ; 24: LIMIT
+        DW      0               ; -- unused --
+        DW      0               ; -- unused --
+_BLK:   DW      0               ; 30: BLK
+_IN:    DW      0               ; 32: IN
+_OUT:   DW      0               ; 34: OUT
+_SCR:   DW      0               ; 36: SCR
+_OFFSE: DW      0               ; 38: OFFSET
+_CONT:  DW      0               ; 40: CONTEXT
+_CURR:  DW      0               ; 42: CURRENT
+_STATE: DW      0               ; 44: STATE
+_BASE:  DW      0               ; 46: BASE
+_DPL:   DW      0               ; 48: DPL
+_FLD:   DW      0               ; 50: FLD
+_CSP:   DW      0               ; 52: CSP
+_RNUM:  DW      0               ; 54: R#
+_HLD:   DW      0               ; 56: HLD
+_USE:   DW      0               ; 58: USE
+_PREV:  DW      0               ; 60: PREV
+_BANK:  DW      0               ; 62: BANK
+CLK0:   DB      0               ; 64: 32-bit fake clock tick counter
+CLK1:   DB      0               ; :
+CLK2:   DB      0               ; :
+CLK3:   DB      0               ; :
+        DW      0 0 0 0 0 0     ; 68: -- unused
 
 DSKBF:  DB      0
         DS      2055            ; 2 * 1028 bytes
@@ -68,14 +101,9 @@ R3.3:   DB      0
 BC:     DB      0               ; "Hidden" registers
 TMP:    DB      0               ; (used by _AND8 _OR8 _XOR8)
 CHIN:   DB      0               ; Used by (?TERMINAL) and (KEY)
-CLK0:   DB      0               ; 32-bit fake clock tick counter
-CLK1:   DB      0               ; :
-CLK2:   DB      0               ; :
-CLK3:   DB      0               ; :
 
 ; LSTCLK is used by th4 FORTH multitasker in order to keep track
 ; of "delta ticks" since last DISPATCH run
 LSTCLK: DB      0               ; Last clock tick count LSB
 
 MEMEND: DS      0
-     

@@ -112,130 +112,140 @@ _PORIG: LDI     <ORIGIN         ; R3 = ORIGIN address
         ADW     R3              ; Compute addr
         RTS                     ; Done
 
-HTICKS: DB      ^4 "FCL" ^'K'                          ; ***** FCLK
-        DW      HPORIG
-TICKS:  DW      DOCON CLK0
-
 ; ------------------------------
 ; USER VARIABLES
+;
+; NOTE: User variables are implemented at static addresses
+
+HEOL:   DB      ^3 "EO" ^'L'                            ; ***** EOL
+        DW      HPORIG
+EOL:    DW      DOCON _EOL
+
+HENTER: DB      ^5 "ENTE" ^'R'                          ; ***** ENTER
+        DW      HEOL
+ENTER:  DW      DOCON _ENTER
+
+HDEL:   DB      ^3 "DE" ^'L'                            ; ***** DEL
+        DW      HENTER
+DEL:    DW      DOCON _DEL
 
 HSZERO: DB      ^2 "S" ^'0'                             ; ***** S0
-        DW      HTICKS
-SZERO:  DW      DOUSE 6
+        DW      HDEL
+SZERO:  DW      DOCON _S0
 
 HRZERO: DB      ^2 "R" ^'0'                             ; ***** R0
         DW      HSZERO
-RZERO:  DW      DOUSE 8
+RZERO:  DW      DOCON _R0
 
 HTIB:   DB      ^3 "TI" ^'B'                            ; ***** TIB
         DW      HRZERO
-TIB:    DW      DOUSE 10
+TIB:    DW      DOCON _TIB
 
 HWIDTH: DB      ^5 "WIDT" ^'H'                          ; ***** WIDTH
         DW      HTIB
-WIDTH:  DW      DOUSE 12
+WIDTH:  DW      DOCON _WIDTH
 
 HWARN:  DB      ^7 "WARNIN" ^'G'                        ; ***** WARNING
         DW      HWIDTH
-WARN:   DW      DOUSE 14
+WARN:   DW      DOCON _WARN
 
 HFENCE: DB      ^5 "FENC" ^'E'                          ; ***** FENCE
         DW      HWARN
-FENCE:  DW      DOUSE 16
+FENCE:  DW      DOCON _FENCE
 
 HDP:    DB      ^2 "D" ^'P'                             ; ***** DP
         DW      HFENCE
-DP:     DW      DOUSE 18
+DP:     DW      DOCON _DP
 
 HVOCL:  DB      ^8 "VOC-LIN" ^'K'                       ; ***** VOC-LINK
         DW      HDP
-VOCL:   DW      DOUSE 20
+VOCL:   DW      DOCON _VOCL
 
 HFIRST: DB      ^5 "FIRS" ^'T'                          ; ***** FIRST
         DW      HVOCL
-FIRST:  DW      DOUSE 22
+FIRST:  DW      DOCON _FIRST
 
 HLIMIT: DB      ^5 "LIMI" ^'T'                          ; ***** LIMIT
         DW      HFIRST
-LIMIT:  DW      DOUSE 24
+LIMIT:  DW      DOCON _LIMIT
 
 HBLK:   DB      ^3 "BL" ^'K'                            ; ***** BLK
         DW      HLIMIT
-BLK:    DW      DOUSE 30
+BLK:    DW      DOCON _BLK
 
 HIN:    DB      ^2 "I" ^'I'                             ; ***** IN
         DW      HBLK
-IN:     DW      DOUSE 32
+IN:     DW      DOCON _IN
 
 HOUT:   DB      ^3 "OU" ^'T'                            ; ***** OUT
         DW      HIN
-OUT:    DW      DOUSE 34
+OUT:    DW      DOCON _OUT
 
 HSCR:   DB      ^3 "SC" ^'R'                            ; ***** SCR
         DW      HOUT
-SCR:    DW      DOUSE 36
+SCR:    DW      DOCON _SCR
 
 HOFFSE: DB      ^6 "OFFSE" ^'T'                         ; ***** OFFSET
         DW      HSCR
-OFFSE:  DW      DOUSE 38
+OFFSE:  DW      DOCON _OFFSE
 
 HCONT:  DB      ^7 "CONTEX" ^'T'                        ; ***** CONTEXT
         DW      HOFFSE
-CONT:   DW      DOUSE 40
+CONT:   DW      DOCON _CONT
 
 HCURR:  DB      ^7 "CURREN" ^'T'                        ; ***** CURRENT
         DW      HCONT
-CURR:   DW      DOUSE 42
+CURR:   DW      DOCON _CURR
 
 HSTATE: DB      ^5 "STAT" ^'E'                          ; ***** STATE
         DW      HCURR
-STATE:  DW      DOUSE 44
+STATE:  DW      DOCON _STATE
 
 HBASE:  DB      ^4 "BAS" ^'E'                           ; ***** BASE
         DW      HSTATE
-BASE:   DW      DOUSE 46
+BASE:   DW      DOCON _BASE
 
 HDPL:   DB      ^3 "DP" ^'L'                            ; ***** DPL
         DW      HBASE
-DPL:    DW      DOUSE 50
+DPL:    DW      DOCON _DPL
 
 HFLD:   DB      ^3 "FL" ^'D'                            ; ***** FLD
         DW      HDPL
-FLD:    DW      DOUSE 52
+FLD:    DW      DOCON _FLD
 
 HCSP:   DB      ^3 "CS" ^'P'                            ; ***** CSP
         DW      HFLD
-CSP:    DW      DOUSE 52
+CSP:    DW      DOCON _CSP
 
 HRNUM:  DB      ^2 "R" ^'#'                             ; ***** R#
         DW      HCSP
-RNUM:   DW      DOUSE 54
+RNUM:   DW      DOCON _RNUM
 
 HHLD:   DB      ^3 "HL" ^'D'                            ; ***** HLD
         DW      HRNUM
-HLD:    DW      DOUSE 56
+HLD:    DW      DOCON _HLD
 
 HUSE:   DB      ^3 "US" ^'E'                            ; ***** USE
         DW      HHLD
-USE:    DW      DOUSE 58
+USE:    DW      DOCON _USE
 
 HPREV:  DB      ^4 "PRE" ^'V'                           ; ***** PREV
         DW      HUSE
-PREV:   DW      DOUSE 60
+PREV:   DW      DOCON _PREV
 
 HBANK:  DB      ^4 "BAN" ^'K'                           ; ***** BANK
         DW      HPREV
-BANK:   DW      DOUSE 62
+BANK:   DW      DOCON _BANK
 
-HTASKS: DB      ^5 "TASK" ^'S'                          ; ***** TASKS
+HFCLK:  DB      ^4 "FCL" ^'K'                          ; ***** FLCK
         DW      HBANK
-TASKS:  DW      DOUSE 64
+FCLK:   DW      DOCON CLK0
 
 ; END OF USER VARIABLES
 ; ------------------------------
 
 HRSHFT: DB      ^2 ">" ^'>'                             ; ***** >>
-        DW      HTASKS
+        DW      HFCLK
 RSHFT:  DW      RSHFT0
 RSHFT0: JPS     _POP21
 RSHF10: LDA     R1.1
@@ -568,14 +578,13 @@ DOTQ20: DW      SEMIS
 HEXPEC: DB      ^6 "EXPEC" ^'T'                         ; ***** EXPECT
         DW      HDOTQ
 EXPEC:  DW      DOCOL OVER PLUS OVER XDO
-EXPE10: DW      KEY DUP LIT 14 PORIG
-        DW      AT EQUAL ZBRAN +EXPE20
+EXPE10: DW      KEY DUP DEL AT EQUAL ZBRAN +EXPE20
         DW      DROP DUP I EQUAL DUP FROMR TWO SUB
         DW      PLUS TOR ZBRAN +EXPE60
         DW      LIT CH_BEL BRAN +EXPE70
 EXPE60: DW      LIT CH_BSP
 EXPE70: DW      BRAN +EXPE30
-EXPE20: DW      DUP LIT 10 EQUAL ZBRAN +EXPE40
+EXPE20: DW      DUP ENTER AT EQUAL ZBRAN +EXPE40
         DW      LEAVE DROP BL ZERO BRAN +EXPE50
 EXPE40: DW      DUP
 EXPE50: DW      I CSTOR ZERO I ONEP STORE
@@ -776,7 +785,7 @@ HABORT: DB      ^5 "ABOR" ^'T'                          ; ***** ABORT
         DW      HQUIT
 ABORT:  DW      DOCOL
 ABOR10: DW      RPSTO SPSTO DEC SPACE
-        DW      LIT XUP AT LIT MAGIC SUB ZBRAN +ABOR20
-        DW      ZERO LIT XUP STORE CR PDOTQ
+        DW      LIT CLK2 AT LIT MAGIC SUB ZBRAN +ABOR20
+        DW      CR PDOTQ
         DB      13 "Minimal-FORTH"
-ABOR20: DW      FORTH DEFIN QUIT
+ABOR20: DW      ZERO LIT CLK2 STORE FORTH DEFIN QUIT

@@ -37,10 +37,10 @@ COLD10: ; Init FORTH registers
         DW      ZERO IN STORE ZERO OUT STORE
         DW      FIRST AT USE STORE FIRST AT PREV STORE
         ; Set minimum environment for autoexec of SCR #1
-        DW      FORTH DEFIN DEC ZERO BLK STORE LBRAC
+        DW      FORTH DEFIN DEC ZERO BLK STORE LBRAC UNIX
         ; Try to load ("autoexec") SCR #1
         DW      ONE BLOCK DUP AT
         DW      LIT MAGIC EQUAL ZBRAN +COLD20
-        DW      ONE LOAD LIT MAGIC LIT XUP STORE
+        DW      ONE LOAD LIT MAGIC LIT CLK2 STORE
         ; Continue via ABORT
 COLD20: DW      ABORT
