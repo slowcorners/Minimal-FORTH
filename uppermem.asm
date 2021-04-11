@@ -21,7 +21,9 @@ _TIB:   DW      0               ; 10: TIB
 _WIDTH: DW      0               ; 12: WIDTH
 _WARN:  DW      0               ; 14: WARNING
 _FENCE: DW      0               ; 16: FENCE
-_DP:    DW      0               ; 18: DP
+_DP:
+_DP.0:  DB      0               ; 18: DP
+_DP.1:  DB      0               ; :
 _VOCL:  DW      0               ; 20: VOC-LINK
 _FIRST: DW      0               ; 22: FIRST
 _LIMIT: DW      0               ; 24: LIMIT

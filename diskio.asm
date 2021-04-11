@@ -5,9 +5,9 @@ HRW:    DB      ^3 "R/" ^'W'                            ; ***** R/W
         DW      HMSMOD
 RW:     DW      DOCOL TOR
         DW      LIT 32 SLMOD ONEP TBANK
-        DW      LIT 1024 STAR FROMR ZBRAN +RW10
+        DW      BBUF STAR FROMR ZBRAN +RW10
         DW      SWAP
-RW10:   DW      LIT 1024 CMOVE SEMIS
+RW10:   DW      BBUF CMOVE SEMIS
 
 HPBUF:  DB      ^4 "+BU" ^'F'                           ; ***** +BUF
         DW      HRW
@@ -69,7 +69,7 @@ HMESS:  DB      ^7 "MESSAG" ^'E'                        ; ***** MESSAGE
         DW      HDLINE
 MESS:   DW      DOCOL WARN AT ZBRAN +MESS20
         DW      DDUP ZBRAN +MESS10
-        DW      LIT 16 SLMOD LIT 4 PLUS DLINE
+        DW      BBUF CL SLASH SLMOD LIT 4 PLUS DLINE
 MESS10: DW      BRAN +MESS30
 MESS20: DW      PDOTQ
         DB      6 "MSG" 32 '#' 32

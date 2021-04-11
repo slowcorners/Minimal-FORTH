@@ -3,11 +3,14 @@ VOCABULARY EDITOR IMMEDIATE
 EDITOR DEFINITIONS DECIMAL
 
 : #OUTSIDE? 2 PICK >R >< R> SWAP - ;
-: >R#<      R# @ 0 1023 >< R# ! ;
+: >R#<      R# @ 0 1019 >< R# ! ;
 
-: TEXT      HERE C/L 1+ BLANKS WORD HERE PAD C/L 1+ CMOVE ;
-: LINE      DUP -16 AND 23 ?ERROR SCR @ (LINE) DROP ;
-: -MOVE     LINE C/L CMOVE UPDATE ;
+: TEXT    HERE C/L 1+ BLANKS WORD HERE PAD C/L 1+ CMOVE ;
+
+: LINE      DUP 16 > OVER 0< OR 
+            23 ?ERROR SCR @ (LINE) DROP ;
+
+: -MOVE   LINE C/L CMOVE UPDATE ;
 
 : E         LINE C/L BLANKS UPDATE ;
 : H         LINE PAD 1+ C/L DUP PAD C! CMOVE ;
@@ -15,14 +18,14 @@ EDITOR DEFINITIONS DECIMAL
 : P         1 TEXT R ;
 
 : S
-    DUP 1 - 14
+    DUP 1 - 16
     DO
         FORTH I LINE I 1+ EDITOR -MOVE -1
     +LOOP
     E ;
 
 : D
-    DUP H 15 DUP ROT
+    DUP H 16 DUP ROT
     DO
         I 1+ LINE I -MOVE
     LOOP
@@ -32,7 +35,7 @@ EDITOR DEFINITIONS DECIMAL
 : A         DUP S P ;
 
 : Z
-    SCR ! 16 0 DO
+    SCR ! 17 0 DO
         FORTH I EDITOR E
     LOOP
 ;
@@ -83,7 +86,7 @@ EDITOR DEFINITIONS DECIMAL
 
 : FIND
     BEGIN
-        R# @ 1023 >
+        R# @ 1019 >
         IF
             TOP PAD HERE C/L 1+ CMOVE 0 ERROR
         ENDIF
@@ -100,7 +103,7 @@ EDITOR DEFINITIONS DECIMAL
 : F     1 TEXT N ;
 : B     PAD C@ MINUS M ;
 : X     1 TEXT FIND PAD C@ DELETE 0 M ;
-: G     0 15 >< C/L * R# ! 0 M ;
+: G     0 16 >< C/L * R# ! 0 M ;
 
 : TILL
     #LEAD + 1 TEXT 1LINE 0= 0 ?ERROR

@@ -5,8 +5,8 @@ ORIGIN: JPA     CENT            ;  0: COLD start
         NOP
         JPA     WENT            ;  4: WARM start
         NOP
-        DW      0               ;  8: Processor type in radix 36
-        DW      0               ; 10: Revision
+        DW      29168           ;  8: Processor type "MI8" in radix 36
+        DW      1               ; 10: Revision
         DW      HFORTH          ; 12: Pointer to latest word defined
         DW      CH_BSP          ; 14: Backspace character
         DW      XUP             ; 16: Pointer to initial user area

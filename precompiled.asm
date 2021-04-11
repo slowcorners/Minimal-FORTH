@@ -85,7 +85,7 @@ BL:     DW      DOCON 32
 
 HCL:    DB      ^3 "C/" ^'L'                            ; ***** C/L
         DW      HBL
-CL:     DW      DOCON 64
+CL:     DW      DOCON 60
 
 HBBUF:  DB      ^5 "B/BU" ^'F'                          ; ***** B/BUF
         DW      HCL
@@ -173,7 +173,7 @@ HBLK:   DB      ^3 "BL" ^'K'                            ; ***** BLK
         DW      HLIMIT
 BLK:    DW      DOCON _BLK
 
-HIN:    DB      ^2 "I" ^'I'                             ; ***** IN
+HIN:    DB      ^2 "I" ^'N'                             ; ***** IN
         DW      HBLK
 IN:     DW      DOCON _IN
 
@@ -294,11 +294,12 @@ HERE:   DW      HERE0 ; DOCOL DP AT SEMIS
 HERE0:  JPS     _HERE
         JPA     NEXT
         ;
-_HERE:  LDI     18              ; USER[18] (DP)
-        STA     R2.0            ; :
-        JPS     _USER           ; R3 = &USER[18]
-        JPS     _LD16           ; R1 = USER[18]
-        JPS     _PUSH1          ; -(SP) = Result
+_HERE:  DEW     SP              ; -(SP) = DP
+        LDA     _DP.1           ; :
+        STR     SP              ; :
+        DEW     SP              ; :
+        LDA     _DP.0           ; :
+        STR     SP              ; :
         RTS                     ; Done
 
 HALLOT: DB      ^5 "ALLO" ^'T'                          ; ***** ALLOT
@@ -308,19 +309,13 @@ ALLOT:  DW      ALLOT0 ; DOCOL DP PSTOR SEMIS
 ALLOT0: JPS     _ALLOT
         JPA     NEXT
         ;
-_ALLOT: LDI     18              ; USER[18] (DP)
-        STA     R2.0            ; :
-        JPS     _USER           ; R3 = &USER[18]
-        JPS     _LD16           ; R1 = USER[18]
-        JPS     _POP2           ; Get increment
-        LDA     R1.0            ; LSB
-        ADA     R2.0            ; :
-        STA     R1.0            ; :
-        LDA     R1.1            ; MSB
-        ACA     R2.1            ; :
-        STA     R1.1            ; :
-        JPS     _ST16           ; :
-        RTS                     ; Done
+_ALLOT: JPS     _POP2           ; R2 = increment
+        LDI     <_DP            ; R3 = addr of DP
+        STA     R3.0            ; :
+        LDI     >_DP            ; :
+        STA     R3.1            ; :
+        JPS     _PSTO3          ; (R3) += R2
+        RTS
 
 HCOMMA: DB      ^1 ^','                                 ; ***** ,
         DW      HALLOT
@@ -393,7 +388,8 @@ SPACE:  DW      DOCOL BL EMIT SEMIS
 
 HDDUP:  DB      ^4 "-DU" ^'P'                           ; ***** -DUP
         DW      HSPACE
-DDUP:   DW      DDUP0
+        ; speed++
+DDUP:   DW      DDUP0 ; DOCOL DUP ZBRAN nnn DUP SEMIS
 DDUP0:  JPS     _DDUP
         JPA     NEXT
         ;
@@ -451,7 +447,7 @@ QERR20: DW      SEMIS
 
 HQCOMP: DB      ^5 "?COM" ^'P'                          ; ***** ?COMP
         DW      HQERR
-QCOMP:  DW      DOCOL STATE AT ZEQU LIT 17 QERR SEMIS
+QCOMP:  DW      DOCOL STATE AT ZEQU LIT 16 QERR SEMIS
 
 HQEXEC: DB      ^5 "?EXE" ^'C'                          ; ***** ?EXEC
         DW      HQCOMP
@@ -575,24 +571,25 @@ DOTQ20: DW      SEMIS
 ; ------------------------------
 ; OUTER INTERPRETER
 
-HEXPEC: DB      ^6 "EXPEC" ^'T'                         ; ***** EXPECT
+HPEXPE: DB      ^8 "(EXPECT" ^')'                       ; ***** (EXPECT)
         DW      HDOTQ
-EXPEC:  DW      DOCOL OVER PLUS OVER XDO
-EXPE10: DW      KEY DUP DEL AT EQUAL ZBRAN +EXPE20
+PEXPE:  DW      DOCOL
+PEXP05: DW      OVER PLUS OVER XDO
+PEXP10: DW      KEY DUP DEL AT EQUAL ZBRAN +PEXP20
         DW      DROP DUP I EQUAL DUP FROMR TWO SUB
-        DW      PLUS TOR ZBRAN +EXPE60
-        DW      LIT CH_BEL BRAN +EXPE70
-EXPE60: DW      LIT CH_BSP
-EXPE70: DW      BRAN +EXPE30
-EXPE20: DW      DUP ENTER AT EQUAL ZBRAN +EXPE40
-        DW      LEAVE DROP BL ZERO BRAN +EXPE50
-EXPE40: DW      DUP
-EXPE50: DW      I CSTOR ZERO I ONEP STORE
-EXPE30: DW      EMIT XLOOP +EXPE10
+        DW      PLUS TOR ZBRAN +PEXP60
+        DW      LIT CH_BEL BRAN +PEXP70
+PEXP60: DW      LIT CH_BSP
+PEXP70: DW      BRAN +PEXP30
+PEXP20: DW      DUP ENTER AT EQUAL ZBRAN +PEXP40
+        DW      LEAVE DROP BL ZERO BRAN +PEXP50
+PEXP40: DW      DUP
+PEXP50: DW      I CSTOR ZERO I ONEP STORE
+PEXP30: DW      EMIT XLOOP +PEXP10
         DW      DROP SEMIS
 
 HQUERY: DB      ^5 "QUER" ^'Y'                          ; ***** QUERY
-        DW      HEXPEC
+        DW      HPEXPE
 QUERY:  DW      DOCOL TIB AT LIT 80 EXPEC
         DW      ZERO IN STORE SEMIS
 

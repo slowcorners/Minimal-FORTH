@@ -144,8 +144,12 @@ UNIX:   DW      DOCOL LIT 0x000A EOL STORE
         DW      LIT 0x0A ENTER STORE
         DW      LIT 0x08 DEL STORE SEMIS
 
-HPQUOT: DB      ^3 '(' '"' ^')'                         ; ***** (")
+HEXPEC: DB      ^6 "EXPEC" ^'T'                         ; ***** EXPECT
         DW      HUNIX
+EXPEC:  DW      DODOE DODOR PEXP05
+
+HPQUOT: DB      ^3 '(' '"' ^')'                         ; ***** (")
+        DW      HEXPEC
 PQUOT:  DW      DOCOL R DUP CAT ONEP
         DW      FROMR PLUS TOR SEMIS
 

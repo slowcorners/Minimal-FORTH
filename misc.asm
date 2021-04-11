@@ -139,7 +139,7 @@ HLIST:  DB      ^4 "LIS" ^'T'                           ; ***** LIST
         DW      HUDOT
 LIST:   DW      DOCOL DEC CR DUP SCR STORE PDOTQ
         DB      6 "SCR" 32 "#" 32
-        DW      DOT LIT 16 ZERO XDO
+        DW      DOT BBUF CL SLASH ZERO XDO
 LIST10: DW      CR I THREE DOTR SPACE
         DW      I SCR AT DLINE XLOOP +LIST10
         DW      CR SEMIS

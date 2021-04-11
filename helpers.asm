@@ -585,7 +585,7 @@ __PICK: LDA     SP.0            ; R3 = SP
 __ROLL: LDS     3               ; Get index number
         STA     R3.3            ; Prepare loop counter
         PHS                     ; Push as parameter for _PICK
-        JPS     _PICK           ; Pick n:th element in R1
+        JPS     __PICK          ; Pick n:th element in R1
         PLS                     ; Cleanup stack
         ; Set up source pointer (R2) for move
         LDA     R3.0            ; :

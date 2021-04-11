@@ -104,24 +104,22 @@ DIGIT0: JPS     _POP21          ; R2 = base, R1 = char
         CPI     'A'             ; Greater or equal to 'A'?
         BMI     DIGI10          ; NO: Then it has to be '0' - '9'
         CPI     '['             ; Less than '[' (i.e. 'A' - 'Z')?
-        BPL     DIGI88          ; NO: Not a digit
+        BPL     PUSHF           ; NO: Not a digit
         SBI     55              ; A becomes 10
         JPA     DIGI20          ; Go check against base
         ; '0' - '9' case
 DIGI10: SBI     '0'             ; Assume '0' - '9'
-        BMI     DIGI88          ; Oops! Negative, not a digit
+        BMI     PUSHF           ; Oops! Negative, not a digit
         CPI     10              ; Greater than 9?
-        BPL     DIGI88          ; YES: Not a digit
+        BPL     PUSHF           ; YES: Not a digit
         ; Check result against base
 DIGI20: CPA     R2.0            ; Less than base?
         BMI     DIGI77          ; YES: Conversion done
-        JPA     DIGI88          ; NO: Not a digit
+        JPA     PUSHF           ; NO: Not a digit
         ; Conversion successful
 DIGI77: STA     R1.0            ; Store binary value
         JPS     _PUSH1          ; Push the value
         JPA     PUSHT           ; Push TRUE; NEXT
-        ; Not a digit
-DIGI88: JPA     PUSHF           ; Push FALSE; NEXT
 
 HPFIND: DB      ^6 "(FIND" ^')'                         ; ***** (FIND)
         DW      HDIGIT
@@ -529,9 +527,9 @@ HTOVER: DB      ^5 "2OVE" ^'R'                          ; ***** 2OVER
 TOVER:  DW      TOVER0
 TOVER0: LDI     3
         PHS
-        JPS     _PICK           ; 3 PICK
+        JPS     __PICK          ; 3 PICK
         JPS     _PUSH1
-        JPS     _PICK           ; 3 PICK
+        JPS     __PICK          ; 3 PICK
         PLS
         JPA     PUSH
 
@@ -547,8 +545,8 @@ HTSWAP: DB      ^5 "2SWA" ^'P'                          ; ***** 2SWAP
 TSWAP:  DW      TSWAP0
 TSWAP0: LDI     3
         PHS
-        JPS     _ROLL           ; 3 ROLL
-        JPS     _ROLL           ; 3 ROLL
+        JPS     __ROLL          ; 3 ROLL
+        JPS     __ROLL          ; 3 ROLL
         PLS
         JPA     NEXT
 
@@ -573,7 +571,7 @@ PSTOR0: JPS     _PSTOR
         ;
 _PSTOR: JPS     _POP3           ; R3 = addr
         JPS     _POP2           ; R2 = incr
-        JPS     _LD16           ; R1 = (R3)
+_PSTO3: JPS     _LD16           ; R1 = (R3)
         JPS     _ADD16          ; R1 = R1 + R2
         JPS     _ST16           ; (R3) = R1
         RTS                     ; Done
@@ -595,13 +593,10 @@ HTBANK: DB      ^5 ">BAN" ^'K'                          ; >BANK
         DW      HTOGGL
 TBANK:  DW      TBANK0
 TBANK0: JPS     _POP1           ; Get bank number from data stack into R1
-        LDI     62              ; Get index to user variable BANK
-        STA     R2.0            ; : into R2.0
-        JPS     _USER           ; R3 now contains absolute address of BANK
-        JPS     _ST16           ; Save the bank number in user variable BANK
-        LDA     R1.0            ; Do the actual bank switch
-        BNK                     ; :
-        JPA     NEXT
+        LDA     R1.0            ; Get LSB
+        STA     _BANK           ; Store for future reference
+        BNK                     ; Do the actual bank switch
+        JPA     NEXT            ; Done
         
 HAT:    DB      ^1 ^'@'                                 ; ***** @
         DW      HTBANK
