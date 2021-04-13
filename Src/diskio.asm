@@ -85,4 +85,5 @@ LOAD:   DW      DOCOL BLK AT TOR IN AT TOR ZERO IN
 HARROW: DB      ^^3 "--" ^'>'                           ; ***** -->
         DW      HLOAD
 ARROW:  DW      DOCOL QLOAD ZERO IN STORE BSCR BLK AT
-        DW      OVER MOD SUB BLK PSTOR SEMIS
+        DW      OVER MOD SUB BLK PSTOR
+        DW      LIT '.' EMIT SEMIS

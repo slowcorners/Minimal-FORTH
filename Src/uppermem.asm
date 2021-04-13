@@ -3,7 +3,7 @@
 
         ORG     0xF5B0
 
-XSP:    DB      0
+XSP:    DW      0
 XTIB:   DB      0
         DS      210             ; TIB:      84
 XRP:    DW      0 0             ; RSTACK:  128
